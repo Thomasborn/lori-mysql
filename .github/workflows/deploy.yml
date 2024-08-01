@@ -1,0 +1,60 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - development
+  pull_request:
+    branches:
+      - development
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+
+    - name: Install dependencies
+      run: npm install
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+    - name: Install sshpass
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y sshpass
+
+    - name: Check SSH Connection
+      env:
+        SERVER_IP: ${{ secrets.SERVER_IP }}
+        SSH_USERNAME: ${{ secrets.SSH_USERNAME }}
+        SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}
+      run: |
+        echo "Checking SSH connection to server..."
+        sshpass -p $SSH_PASSWORD ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 -o LogLevel=ERROR $SSH_USERNAME@$SERVER_IP "echo SSH connection successful" || { echo "SSH connection failed"; exit 1; }
+
+    - name: Deploy to Server
+      env:
+        SERVER_IP: ${{ secrets.SERVER_IP }}
+        SSH_USERNAME: ${{ secrets.SSH_USERNAME }}
+        SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}
+        APP_PATH: ${{ secrets.APP_PATH }}
+        REPO_URL: ${{ secrets.REPO_URL }}
+      run: |
+        echo "Deploying application to server..."
+        sshpass -p $SSH_PASSWORD ssh -o StrictHostKeyChecking=no $SSH_USERNAME@$SERVER_IP "
+        cd $APP_PATH &&
+        git pull $REPO_URL &&
+        npm install &&
+        pm2 restart all
+        "
