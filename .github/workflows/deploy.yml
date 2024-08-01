@@ -53,8 +53,13 @@ jobs:
       run: |
         echo "Deploying application to server..."
         sshpass -p $SSH_PASSWORD ssh -o StrictHostKeyChecking=no $SSH_USERNAME@$SERVER_IP "
+        if [ ! -d '$APP_PATH/.git' ]; then
+          git clone $REPO_URL $APP_PATH
+        else
+          cd $APP_PATH
+          git pull origin main
+        fi
         cd $APP_PATH &&
-        git pull $REPO_URL &&
         npm install &&
         pm2 restart all
         "
