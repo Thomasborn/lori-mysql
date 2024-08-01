@@ -1,0 +1,394 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+model user {
+  id          Int     @id @default(autoincrement())
+  email       String  @unique
+  password    String
+  username    String?
+  status      String?
+  karyawan_id Int
+  role_id     Int
+  created_at  DateTime @default(now()) // Created timestamp
+  updated_at  DateTime @default(now())      // Updated timestamp
+  deleted_at DateTime?
+  karyawan    karyawan @relation(fields: [karyawan_id], references: [id])
+  role        role     @relation(fields: [role_id], references: [id])
+  produksi  produksi[]
+  restok_bahan  restok_bahan[]
+  qc_produk qc_produk[]
+  qc_bahan  qc_bahan[]
+  penjualan penjualan[]
+  distribusi distribusi[]
+  review       produksi[]   @relation("ProduksiReviewer")
+  
+}
+model karyawan {
+  id            Int      @id @default(autoincrement())
+  nama          String
+  nik           String   @unique
+  alamat        String
+  kontak        String
+  tanggal_lahir DateTime
+  jenis_kelamin String
+  no_rekening   String
+  foto          String?   // Assuming 'foto' is a URL to the employee's photo
+  posisi        String?
+  status        String?
+  bank          String?
+  outlet_id     Int?
+  akun_bank     String ?
+  created_at    DateTime @default(now())
+  updated_at    DateTime @default(now())
+  deleted_at    DateTime?
+ // Single outlet where the employee belongs
+  outlet outlet?   @relation("EmployeeCurrentOutlet", fields: [outlet_id], references: [id])
+
+  // Multiple outlets the employee is associated with
+  pic  outlet[]  @relation("OutletPic")
+  users         user[]
+}
+model role {
+  id           Int           @id @default(autoincrement())
+  name         String?       @unique
+  abilityRules ability_rule[]
+  users        user[]
+}
+
+model ability_rule {
+  id         Int    @id @default(autoincrement())
+  action     String
+  subject    String
+  inverted   Boolean? 
+  conditions Boolean?
+  roleId     Int   
+  role       role     @relation(fields: [roleId], references: [id])
+}
+
+
+
+
+model model_produk {
+  id         Int      @id @default(autoincrement())
+  kode       String
+  nama       String
+  // variasi    String
+  deskripsi  String?
+  deleted_at DateTime?
+  kategori   kategori_produk @relation(fields: [kategori_id], references: [id])
+  kategori_id Int
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now())
+  foto_produk foto_produk[]
+  detail_model_produk detail_model_produk[]
+}
+model foto_produk {
+  id               Int               @id @default(autoincrement())
+  filepath         String
+  // Define a foreign key relationship to the product model
+  model_produk_id    Int
+  model_produk      model_produk       @relation(fields: [model_produk_id], references: [id])
+}
+model kategori_produk {
+  id        Int     @id @default(autoincrement())
+  nama      String
+  tipe      String
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now())
+  deleted_at DateTime?
+  model_produk model_produk[]
+}
+
+model detail_model_produk {
+  id                Int     @id @default(autoincrement())
+  ukuran            String
+  biaya_jahit       Float
+  hpp               Float
+  harga_jual        Float
+  model_produk      model_produk @relation(fields: [model_produk_id], references: [id])
+  model_produk_id   Int
+  jumlah            Int@default(0)
+  created_at        DateTime @default(now())
+  updated_at        DateTime @default(now())
+  deleted_at        DateTime?
+  bahan_produk      bahan_produk[]
+  daftar_produk      daftar_produk[]
+  produksi          produksi[]
+  produk_outlet     produk_outlet[]
+  detail_penjualan detail_penjualan[]
+  distribusi distribusi[]
+
+}
+
+model bahan_produk {
+  id                   Int          @id @default(autoincrement())
+  jumlah               Float
+  detail_model_produk  detail_model_produk @relation(fields: [detail_model_produk_id], references: [id])
+  detail_model_produk_id Int
+  daftar_bahan         daftar_bahan @relation(fields: [daftar_bahan_id], references: [id])
+  daftar_bahan_id      Int
+  created_at           DateTime @default(now())
+  updated_at           DateTime @default(now())
+  deleted_at           DateTime?
+}
+
+model daftar_bahan {
+  id      Int     @id @default(autoincrement())
+  kode    String
+  stok    Float
+  nama    String
+  satuan  String
+  harga   Float?
+  foto    String? 
+  kategori    String? 
+  deskripsi String? 
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now())
+  deleted_at DateTime?
+  bahan_produk bahan_produk[]
+  restok_bahan restok_bahan[]
+  qc_bahan  qc_bahan[]
+  
+}
+model restok_bahan {
+  id              Int      @id @default(autoincrement())
+  tanggal_pesan   DateTime@default(now())
+  tanggal_estimasi DateTime 
+  tanggal_terima  DateTime?
+  harga_satuan    Float
+  jumlah          Float
+  catatan         String?
+  status         String?
+  daftar_bahan_id Int      // Foreign key to the daftar_bahan model
+  user_id         Int  @default(1)    // Foreign key to the daftar_bahan model
+  user            user @relation(fields: [user_id], references: [id])
+  daftar_bahan    daftar_bahan @relation(fields: [daftar_bahan_id], references: [id])
+  supplier_id     Int      // Foreign key to the supplier model
+  supplier        supplier   @relation(fields: [supplier_id], references: [id])
+  created_at      DateTime @default(now()) // Created timestamp
+  updated_at      DateTime @default(now())      // Updated timestamp
+  deleted_at      DateTime?             // Soft delete field
+}
+model supplier {
+  id       Int      @id @default(autoincrement())
+  kode     String?
+  nama     String
+  pic      String?
+  alamat   String
+  kontak   String
+  no_rek   String
+  restok_bahan restok_bahan[] // Add this if you want to establish a relation to restok_bahan
+  created_at DateTime @default(now()) // Created timestamp
+  updated_at DateTime @default(now())      // Updated timestamp
+  deleted_at DateTime?             // Soft delete field
+}
+
+model produksi {
+  id                  Int       @id @default(autoincrement())
+  status            String?
+  catatan            String?
+  tanggal_mulai       DateTime  @default(now())
+  tanggal_selesai     DateTime? 
+  jumlah              Int
+  user_id             Int
+  id_reviewer         Int?
+  detail_model_produk_id Int
+  detail_model_produk   detail_model_produk @relation(fields: [detail_model_produk_id], references: [id])
+  user                user     @relation(fields: [user_id], references: [id])
+  reviewer            user?              @relation("ProduksiReviewer", fields: [id_reviewer], references: [id])
+  created_at          DateTime  @default(now())
+  updated_at          DateTime  @default(now())
+  deleted_at          DateTime?
+
+}
+
+
+
+model daftar_produk {
+  id                  Int       @id @default(autoincrement())
+  sku                 String
+  jumlah              Int?
+  detail_model_produk   detail_model_produk @relation(fields: [detail_model_produk_id], references: [id])
+  detail_model_produk_id Int
+  created_at          DateTime  @default(now())
+  updated_at          DateTime  @default(now())
+  deleted_at          DateTime?
+ 
+}
+
+
+
+model qc_produk {
+  id                Int           @id @default(autoincrement())
+  tanggal_temuan    DateTime      @default(now())
+  tanggal_selesai   DateTime?
+  tindakan          String
+  jumlah            Int
+  catatan           String
+  status            String
+  produk_id         Int
+  user_id           Int
+
+  produk     produk_outlet @relation(fields: [produk_id], references: [id])
+  user              user          @relation(fields: [user_id], references: [id])
+
+  created_at        DateTime      @default(now())
+  updated_at        DateTime      @default(now())
+  deleted_at        DateTime?
+}
+
+model qc_bahan {
+  id                Int           @id @default(autoincrement())
+  tindakan          String
+  jumlah            Int
+  catatan           String
+  status            String
+  daftar_bahan_id   Int
+  user_id           Int
+  created_at        DateTime      @default(now())
+  updated_at        DateTime      @default(now())
+  deleted_at        DateTime?
+
+  daftar_bahan      daftar_bahan  @relation(fields: [daftar_bahan_id], references: [id])
+  user              user          @relation(fields: [user_id], references: [id])
+ 
+}
+model lemari {
+  id              Int       @id @default(autoincrement())
+  kode            String?
+  alamat          String
+  deskripsi       String?
+  kapasitas       Int
+  outlet          outlet    @relation(fields: [outlet_id], references: [id])
+  created_at      DateTime  @default(now())
+  updated_at      DateTime  @default(now())
+  deleted_at      DateTime?
+  
+  outlet_id       Int
+}
+
+
+model outlet {
+  id                Int          @id @default(autoincrement())
+  nama              String
+  no_telp           String
+  kode              String?
+  jam_operasional   String?
+  tanggal_buka      DateTime?
+  status            String?
+  deskripsi         String?
+  alamat            String
+  idPic             Int?         // Nullable for now
+
+  // Timestamps
+  created_at        DateTime     @default(now())
+  updated_at        DateTime     @updatedAt
+  deleted_at        DateTime?
+
+  // Relations
+  distribusiDari    distribusi[] @relation("DistribusiDariOutlet")
+  distribusiTujuan  distribusi[] @relation("DistribusiTujuanOutlet")
+  lemari            lemari[]
+  gawangan          gawangan[]
+  produk_outlet     produk_outlet[]
+ // Employees working at this outlet
+  karyawan         karyawan[]   @relation("EmployeeCurrentOutlet") // One-to-many relation for current employees
+  
+  pic               karyawan?    @relation("OutletPic", fields: [idPic], references: [id]) // One-to-one relation for PIC
+}
+
+model produk_outlet {
+  id                Int       @id @default(autoincrement())
+  produk_id         Int
+  outlet_id         Int
+  jumlah            Int
+
+ // Timestamps
+  created_at        DateTime     @default(now())
+  updated_at        DateTime     @updatedAt
+  deleted_at        DateTime?
+
+  detail_model_produk      detail_model_produk    @relation(fields: [produk_id], references: [id])
+  outlet            outlet          @relation(fields: [outlet_id], references: [id])
+  qc_produk   qc_produk[]
+  @@unique([produk_id, outlet_id])
+    // Indexes for optimization
+  @@index([outlet_id])
+}
+
+ model distribusi {
+  id                Int             @id @default(autoincrement())
+  produk_id         Int
+  idPic             Int
+  asal_outlet_id    Int
+  tujuan_outlet_id  Int
+  jumlah            Int
+  catatan           String
+  tanggal        DateTime            @default(now())
+ // Timestamps
+  created_at        DateTime     @default(now())
+  deleted_at        DateTime?
+
+  Pic      user    @relation(fields: [idPic], references: [id])
+  daftarProduk      detail_model_produk    @relation(fields: [produk_id], references: [id])
+  asalOutlet        outlet          @relation("DistribusiDariOutlet", fields: [asal_outlet_id], references: [id])
+  tujuanOutlet      outlet          @relation("DistribusiTujuanOutlet", fields: [tujuan_outlet_id], references: [id])
+}
+
+
+model gawangan {
+  id            Int       @id @default(autoincrement())
+  outlet        outlet    @relation(fields: [outlet_id], references: [id])
+  kode          String?
+  deskripsi     String?
+  outlet_id     Int
+  // Timestamps
+  created_at        DateTime     @default(now())
+  updated_at        DateTime     @updatedAt
+  deleted_at        DateTime?
+
+}
+
+
+model detail_penjualan {
+  id                Int             @id @default(autoincrement())
+  jenis_transaksi   String
+  penjualan         penjualan       @relation(fields: [penjualan_id], references: [id])
+  produk            detail_model_produk   @relation(fields: [produk_id], references: [id])
+  created_at        DateTime        @default(now())
+  updated_at        DateTime        @default(now())
+  deleted_at        DateTime?
+
+  penjualan_id      Int
+  produk_id         Int             @default(1)
+}
+
+model penjualan {
+  id                Int               @id @default(autoincrement())
+  total             Int
+  metode_pembayaran String
+  waktu             DateTime
+  user              user              @relation(fields: [user_id], references: [id])
+  // detail_diskon     detail_diskon[]
+  created_at        DateTime          @default(now())
+  updated_at        DateTime          @default(now())
+  deleted_at        DateTime?
+
+  user_id           Int
+  detail_penjualan  detail_penjualan[]
+}
+
+
+
+
+
+
+
