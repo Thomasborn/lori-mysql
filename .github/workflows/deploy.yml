@@ -55,11 +55,13 @@ jobs:
         sshpass -p $SSH_PASSWORD ssh -o StrictHostKeyChecking=no $SSH_USERNAME@$SERVER_IP "
         if [ ! -d '$APP_PATH/.git' ]; then
           git clone $REPO_URL $APP_PATH
+          git config --global --add safe.directory $APP_PATH
         else
           cd $APP_PATH
           git pull origin main
         fi
         cd $APP_PATH &&
+        git config --global --add safe.directory $APP_PATH &&
         npm install &&
         pm2 restart all
         "
