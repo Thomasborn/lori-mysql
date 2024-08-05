@@ -54,12 +54,15 @@ jobs:
         echo "Deploying application to server..."
         sshpass -p $SSH_PASSWORD ssh -o StrictHostKeyChecking=no $SSH_USERNAME@$SERVER_IP "
         if [ ! -d '$APP_PATH/.git' ]; then
-          git clone $REPO_URL $APP_PATH
+          echo 'Cloning repository...'
+          git clone $REPO_URL $APP_PATH || { echo 'Git clone failed'; exit 1; }
         else
+          echo 'Pulling latest changes...'
           cd $APP_PATH
-          git pull origin main
+          git pull origin main || { echo 'Git pull failed'; exit 1; }
         fi
         cd $APP_PATH &&
-        npm install &&
-        pm2 restart all
-        "
+        npm install || { echo 'NPM install failed'; exit 1; }
+        pm2 restart all || { echo 'PM2 restart failed'; exit 1; }
+        echo 'Deployment complete.'
+      "
