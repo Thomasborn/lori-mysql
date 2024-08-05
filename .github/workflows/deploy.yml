@@ -23,7 +23,7 @@ jobs:
         node-version: '18'
 
     - name: Install dependencies
-      run: npm install --legacy-peer-deps
+      run: npm install
 
   deploy:
     runs-on: ubuntu-latest
@@ -43,21 +43,6 @@ jobs:
         echo "Checking SSH connection to server..."
         sshpass -p $SSH_PASSWORD ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 -o LogLevel=ERROR $SSH_USERNAME@$SERVER_IP "echo SSH connection successful" || { echo "SSH connection failed"; exit 1; }
 
-    - name: Install Node.js via NVM
-      env:
-        SERVER_IP: ${{ secrets.SERVER_IP }}
-        SSH_USERNAME: ${{ secrets.SSH_USERNAME }}
-        SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}
-      run: |
-        sshpass -p $SSH_PASSWORD ssh -o StrictHostKeyChecking=no $SSH_USERNAME@$SERVER_IP "
-        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash &&
-        export NVM_DIR=\"$HOME/.nvm\" &&
-        [ -s \"$NVM_DIR/nvm.sh\" ] && \. \"$NVM_DIR/nvm.sh\" &&
-        nvm install 18 &&
-        nvm use 18 &&
-        node -v
-        "
-
     - name: Deploy to Server
       env:
         SERVER_IP: ${{ secrets.SERVER_IP }}
@@ -66,16 +51,43 @@ jobs:
         APP_PATH: ${{ secrets.APP_PATH }}
         REPO_URL: ${{ secrets.REPO_URL }}
       run: |
-        echo "Deploying application to server..."
-        sshpass -p $SSH_PASSWORD ssh -o StrictHostKeyChecking=no $SSH_USERNAME@$SERVER_IP "
-        if [ ! -d '$APP_PATH/.git' ]; then
-          git clone $REPO_URL $APP_PATH
-          git config --global --add safe.directory $APP_PATH
+        if [ "${GITHUB_REF}" == "refs/heads/development" ]; then
+          echo "Deploying to Development Server..."
+          APP_PATH=${{ secrets.APP_PATH_DEV }}
+          git_branch="development"
+        elif [ "${GITHUB_REF}" == "refs/heads/main" ]; then
+          echo "Deploying to Production Server..."
+          APP_PATH=${{ secrets.APP_PATH_PROD }}
+          git_branch="main"
         else
-          cd $APP_PATH
-          git pull origin main
+          echo "No deployment required for branch ${GITHUB_REF}"
+          exit 0
         fi
-        cd $APP_PATH &&
-        npm install --legacy-peer-deps &&
-        pm2 restart all
-        "
+
+        sshpass -p $SSH_PASSWORD ssh -tt -o StrictHostKeyChecking=no -o LogLevel=ERROR $SSH_USERNAME@$SERVER_IP <<EOF
+          set -e  # Exit on error
+          echo "Checking if $APP_PATH is a Git repository..."
+
+          if [ -d "$APP_PATH/.git" ]; then
+            echo "Git repository found. Pulling latest changes..."
+            cd $APP_PATH || { echo "Failed to navigate to directory"; exit 1; }
+            git pull origin $git_branch || { echo "Git pull failed"; exit 1; }
+          else
+            echo "No Git repository found. Cloning repository..."
+            if [ -d "$APP_PATH" ]; then
+              echo "Removing existing directory..."
+              rm -rf $APP_PATH
+            fi
+            mkdir -p $APP_PATH
+            git clone $REPO_URL $APP_PATH || { echo "Git clone failed"; exit 1; }
+          fi
+
+          echo "Navigating to application directory..."
+          cd $APP_PATH || { echo "Directory not found"; exit 1; }
+
+          echo "Installing dependencies..."
+          npm install || { echo "NPM install failed"; exit 1; }
+
+          echo "Deployment completed successfully!"
+          exit 0
+        EOF
