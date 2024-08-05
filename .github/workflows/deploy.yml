@@ -23,7 +23,7 @@ jobs:
         node-version: '18'
 
     - name: Install dependencies
-      run: npm install
+      run: npm install --legacy-peer-deps
 
   deploy:
     runs-on: ubuntu-latest
@@ -43,6 +43,21 @@ jobs:
         echo "Checking SSH connection to server..."
         sshpass -p $SSH_PASSWORD ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 -o LogLevel=ERROR $SSH_USERNAME@$SERVER_IP "echo SSH connection successful" || { echo "SSH connection failed"; exit 1; }
 
+    - name: Install Node.js via NVM
+      env:
+        SERVER_IP: ${{ secrets.SERVER_IP }}
+        SSH_USERNAME: ${{ secrets.SSH_USERNAME }}
+        SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}
+      run: |
+        sshpass -p $SSH_PASSWORD ssh -o StrictHostKeyChecking=no $SSH_USERNAME@$SERVER_IP "
+        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash &&
+        export NVM_DIR=\"$HOME/.nvm\" &&
+        [ -s \"$NVM_DIR/nvm.sh\" ] && \. \"$NVM_DIR/nvm.sh\" &&
+        nvm install 18 &&
+        nvm use 18 &&
+        node -v
+        "
+
     - name: Deploy to Server
       env:
         SERVER_IP: ${{ secrets.SERVER_IP }}
@@ -61,7 +76,6 @@ jobs:
           git pull origin main
         fi
         cd $APP_PATH &&
-        git config --global --add safe.directory $APP_PATH &&
-        npm install --force &&
+        npm install --legacy-peer-deps &&
         pm2 restart all
         "
