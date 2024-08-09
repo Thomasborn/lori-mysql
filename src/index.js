@@ -20,12 +20,12 @@ dotenv.config();
 app.use(express.static(publicDirectory));
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }));
-// app.use(cors({
-//   origin: '*', // Replace with the frontend URL or set to '*' for any domain
-//   methods: ['GET', 'POST', 'PUT', 'DELETE'], // Allow specific HTTP methods
-//   allowedHeaders: ['Content-Type', 'Authorization'], // Allow specific headers
-//   credentials: true, // Allow cookies to be sent with requests
-// }));
+app.use(cors({
+  origin: '*', // Replace with the frontend URL or set to '*' for any domain
+  methods: ['GET', 'POST', 'PUT', 'DELETE'], // Allow specific HTTP methods
+  allowedHeaders: ['Content-Type', 'Authorization'], // Allow specific headers
+  credentials: true, // Allow cookies to be sent with requests
+}));
 const PORT = process.env.PORT;
 app.get("/api",(req,res) => {
     res.send("Hello World");
