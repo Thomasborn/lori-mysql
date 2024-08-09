@@ -83,7 +83,7 @@ const permissionsCache = new NodeCache();
           include: { abilityRules: true },
         });
   
-        const requestedRoute = req.originalUrl.split('?')[0].split('/').slice(1, 3).join('-');
+        const requestedRoute = req.originalUrl.split('?')[0].split('/').slice(2, 4).join('-');
         const method = req.method.toLowerCase();
   
         const urlParts = req.originalUrl.split('?')[0].split('/');
