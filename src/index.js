@@ -29,7 +29,7 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 const PORT = process.env.PORT;
-app.get("/api",(req,res) => {
+app.get("/apis",(req,res) => {
     res.send("Hello World");
 });
 
