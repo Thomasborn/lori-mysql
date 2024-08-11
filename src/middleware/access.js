@@ -77,7 +77,7 @@ const permissionsCache = new NodeCache();
   };
   async function checkAuth(req, res, next) {
     try {
-      if (req.session && req.session.user && req.session.user.role_id) {
+      if (req.session && req.session.user ) {
         const role = await prisma.role.findUnique({
           where: { id: req.session.user.role_id },
           include: { abilityRules: true },
@@ -132,7 +132,7 @@ const permissionsCache = new NodeCache();
           return res.status(403).json({ success: false, message: `Akses tidak dimiliki untuk ${requestedRoute}` });
         }
       } else {
-        return res.status(401).json({ success: false, message: 'Sesi tidak sah' });
+        return res.status(401).json({ success: false, message: 'Sesi tidak sah' ,sesi:req.session});
       }
     } catch (error) {
       console.error('Error checking user permissions:', error);

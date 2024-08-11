@@ -30,25 +30,28 @@ const finduser = async (q, role, status, page = 1, itemsPerPage = 10) => {
 
     console.log('Filter object:', JSON.stringify(where, null, 2)); // Log filter object
 
-    // Calculate pagination values
-    const skip = (page - 1) * itemsPerPage;
-    const take = itemsPerPage;
+  // Ensure `page` and `itemsPerPage` are integers and handle default values
+const pageNumber = parseInt(page, 10) || 1; // Default to page 1 if not provided
+const itemsPerPageNumber = parseInt(itemsPerPage, 10) || 10; // Default to 10 items per page if not provided
 
-    // Fetch users with Prisma, including search criteria and pagination
-    const users = await prisma.user.findMany({
-      where,
+// Calculate pagination values
+const skip = (pageNumber - 1) * itemsPerPageNumber;
+const take = itemsPerPageNumber;
+
+// Fetch users with Prisma, including search criteria and pagination
+const users = await prisma.user.findMany({
+  where,
+  include: {
+    role: {
       include: {
-        role: {
-          include: {
-            abilityRules: true
-              
-          },
-        },
-        karyawan: true,
+        abilityRules: true
       },
-      skip,
-      take,
-    });
+    },
+    karyawan: true,
+  },
+  skip: skip >= 0 ? skip : 0, // Ensure skip is non-negative
+  take: take > 0 ? take : 10, // Ensure take is positive
+});
 
     console.log('Fetched users:', JSON.stringify(users, null, 2)); // Log fetched users
 
