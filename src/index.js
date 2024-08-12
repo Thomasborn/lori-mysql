@@ -14,11 +14,11 @@ const cors = require("cors"); // Import the cors package
 const publicDirectory = path.join(__dirname, 'public');
 fs.existsSync(publicDirectory) || fs.mkdirSync(publicDirectory);
 
+dotenv.config();
 const  app = express();
 // const bodyParser = require('body-parser');
-dotenv.config();
-app.use(express.static(publicDirectory));
 app.use(cookieParser());
+app.use(express.static(publicDirectory));
 app.use(express.json())
 app.set('trust proxy', 1); // Trust the first proxy in the chain (if behind a proxy like Nginx)
 
@@ -47,7 +47,7 @@ app.use(
     resave: true,
     saveUninitialized: true,
     cookie: {
-      secure: true,
+      secure: false,
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
       secure: false,
       httpOnly: true,
