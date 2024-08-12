@@ -30,7 +30,7 @@ const corsOptions = {
     'https://omahit.online/'
   ], // Replace with your frontend URLs
   methods: ['GET', 'POST', 'PUT', 'DELETE'], // Allow specific HTTP methods
-  allowedHeaders: ['Content-Type', 'Authorization'], // Allow specific headers
+  // allowedHeaders: ['Content-Type', 'Authorization'], // Allow specific headers
   credentials: true, // Allow credentials (cookies, etc.)
 };
 
@@ -58,8 +58,8 @@ app.use(
 app.post('/login', async (req, res) => {
   // Your login logic
   req.session.user = {
-    id: user.id,
-    role_id: user.role_id,
+    id: 1,
+    role_id: 2,
   };
   req.session.save(err => {
     if (err) {
