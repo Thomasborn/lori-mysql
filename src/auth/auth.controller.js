@@ -79,6 +79,7 @@ router.post("/login", upload.none(), async (req, res) => {
               console.error('Session save error:', err);
               return res.status(500).json({ message: 'Session save error' });
             }
+            console.log('Session saved:', req.session); // Log session after saving
             res.json(response);
           });
         } else {
