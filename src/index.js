@@ -26,7 +26,7 @@ const corsOptions = {
   origin: [
     'http://localhost:5173',
     'http://localhost.devl:5173',
-    'https://omahit.online/'
+
   ], // Replace with your frontend URLs
   methods: ['GET', 'POST', 'PUT', 'DELETE'], // Allow specific HTTP methods
   allowedHeaders: ['Content-Type', 'Authorization'], // Allow specific headers
@@ -51,12 +51,12 @@ app.use(
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
       secure: false,
       httpOnly: true,
-      sameSite: 'strict',
+      sameSite: 'None',
     },
   })
 );
 
-app.get('/session-check', (req, res) => {
+app.get('/sessions-check', (req, res) => {
   if (req.session && req.session.user) {
     res.json({ session: req.session });
   } else {
