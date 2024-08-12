@@ -18,6 +18,7 @@ const  app = express();
 // const bodyParser = require('body-parser');
 dotenv.config();
 app.use(express.static(publicDirectory));
+app.use(cookieParser());
 app.use(express.json())
 app.set('trust proxy', 1); // Trust the first proxy in the chain (if behind a proxy like Nginx)
 
@@ -40,14 +41,13 @@ app.get("/apis",(req,res) => {
     res.send("Hello World");
 });
 
-app.use(cookieParser());
 app.use(
   session({
     secret: 'lori',
     resave: true,
     saveUninitialized: true,
     cookie: {
-      secure: process.env.NODE_ENV === 'production',
+      secure: true,
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
       secure: false,
       httpOnly: true,
@@ -58,7 +58,7 @@ app.use(
 app.get('/session-check', async (req, res) => {
   try {
     // Check if session and user data exist
-    if (req.session && req.session.user) {
+    if (req.session ) {
       // Send session data if user is authenticated
       res.json({ session: req.session });
     } else {
