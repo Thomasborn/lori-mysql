@@ -26,7 +26,7 @@ const corsOptions = {
   origin: [
     'http://localhost:5173',
     'http://localhost.devl:5173',
-
+    'https://omahit.online/'
   ], // Replace with your frontend URLs
   methods: ['GET', 'POST', 'PUT', 'DELETE'], // Allow specific HTTP methods
   allowedHeaders: ['Content-Type', 'Authorization'], // Allow specific headers
@@ -43,7 +43,6 @@ app.get("/apis",(req,res) => {
 app.use(cookieParser());
 app.use(
   session({
-    store: new RedisStore({ client: redisClient }),
     secret: 'lori',
     resave: false,
     saveUninitialized: true,
@@ -52,12 +51,12 @@ app.use(
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
       secure: false,
       httpOnly: true,
-      sameSite: 'None',
+      sameSite: 'lax',
     },
   })
 );
 
-app.get('/sessions-check', (req, res) => {
+app.get('/session-check', (req, res) => {
   if (req.session && req.session.user) {
     res.json({ session: req.session });
   } else {
