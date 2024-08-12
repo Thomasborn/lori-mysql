@@ -22,7 +22,6 @@ app.use(express.static(publicDirectory));
 app.use(express.json())
 // app.set('trust proxy', 1); // Trust the first proxy in the chain (if behind a proxy like Nginx)
 
-app.use(express.urlencoded({ extended: true }));
 const corsOptions = {
   origin: [
     'http://localhost:5173',
@@ -36,6 +35,8 @@ const corsOptions = {
 
 
 app.use(cors(corsOptions));
+app.use(express.urlencoded({ extended: true }));
+
 const PORT = process.env.PORT;
 app.get("/apis",(req,res) => {
     res.send("Hello World");
