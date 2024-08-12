@@ -55,12 +55,26 @@ app.use(
     },
   })
 );
+app.post('/login', async (req, res) => {
+  // Your login logic
+  req.session.user = {
+    id: user.id,
+    role_id: user.role_id,
+  };
+  req.session.save(err => {
+    if (err) {
+      console.error('Session save error:', err);
+      return res.status(500).json({ message: 'Session save error' });
+    }
+    res.json({ message: 'Login successful', session: req.session });
+  });
+});
 app.get('/session-check', async (req, res) => {
   try {
     // Check if session and user data exist
     if (req.session ) {
       // Send session data if user is authenticated
-      res.json({ session: req.session });
+      res.json({ session: req.session ,cookie:req.cookies});
     } else {
       // If session or user data is missing, send a 401 response
       res.status(401).json({ message: 'No active session' });

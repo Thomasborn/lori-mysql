@@ -75,69 +75,88 @@ const permissionsCache = new NodeCache();
     const mappedAksesNama = mapAksesNamaToMethod(aksesNama);
     return (url.includes(fungsiNama) && mappedAksesNama === method) || (url.includes(fungsiNama) && mappedAksesNama === 'crud');
   };
-  async function checkAuth(req, res, next) {
-    try {
-      if (req.session && req.session.user ) {
-        const role = await prisma.role.findUnique({
-          where: { id: req.session.user.role_id },
-          include: { abilityRules: true },
-        });
-  
-        const requestedRoute = req.originalUrl.split('?')[0].split('/').slice(2, 4).join('-');
-        const method = req.method.toLowerCase();
-  
-        const urlParts = req.originalUrl.split('?')[0].split('/');
-        const userId = urlParts[3];
-  
-        const methodToActionMap = {
-          get: 'read',
-          post: 'create',
-          put: 'update',
-          patch: 'update',
-          delete: 'delete',
-        };
-  
-        const action = methodToActionMap[method];
-  
-        // Check for inverted rules first
-        const isInvertedDenied = role.abilityRules.some(rule => 
-          rule.inverted && rule.action === action && rule.subject === requestedRoute
-        );
-  
-        // If inverted rule denies access, deny it regardless of other permissions
-        if (isInvertedDenied) {
-          return res.status(403).json({ success: false, message: `Akses tidak dimiliki untuk ${requestedRoute}` });
-        }
-  
-        // Check for general and specific permissions
-        const hasPermission = role.abilityRules.some(rule => {
-          if (rule.action === 'manage' && rule.subject === 'all') {
-            return true; // Full access granted
-          }
-  
-          if (rule.action === action) {
-            if (rule.subject === 'halaman-profil-pengguna' && userId && req.session.user.id === parseInt(userId)) {
-              return true; // Allow access if the user is accessing their own profile
-            }
-  
-            return rule.subject === requestedRoute || rule.subject === 'all';
-          }
-  
-          return false;
-        });
-  
-        if (hasPermission) {
-          return next();
-        } else {
-          return res.status(403).json({ success: false, message: `Akses tidak dimiliki untuk ${requestedRoute}` });
-        }
-      } else {
-        return res.status(401).json({ success: false, message: 'Sesi tidak sah' ,sesi:req.session});
-      }
-    } catch (error) {
-      console.error('Error checking user permissions:', error);
-      return res.status(500).json({ success: false, message: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
+
+async function checkAuth(req, res, next) {
+  try {
+    // Extract token from cookies
+    const token = req.cookies.authToken;
+
+    if (!token) {
+      return res.status(401).json({ success: false, message: 'No token provided' });
     }
+
+    // Verify the token
+    jwt.verify(token, 'lori', async (err, decoded) => {
+      if (err) {
+        return res.status(403).json({ success: false, message: 'Token is invalid' });
+      }
+
+      // Extract user id and role_id from token payload
+      const { id, role_id } = decoded;
+
+      // Fetch the role and ability rules from the database
+      const role = await prisma.role.findUnique({
+        where: { id: role_id },
+        include: { abilityRules: true },
+      });
+
+      if (!role) {
+        return res.status(403).json({ success: false, message: 'Role not found' });
+      }
+
+      // Define method to action mapping
+      const methodToActionMap = {
+        get: 'read',
+        post: 'create',
+        put: 'update',
+        patch: 'update',
+        delete: 'delete',
+      };
+      
+      const method = req.method.toLowerCase();
+      const action = methodToActionMap[method];
+      const requestedRoute = req.originalUrl.split('?')[0].split('/').slice(2, 4).join('-');
+      const urlParts = req.originalUrl.split('?')[0].split('/');
+      const userId = urlParts[3];
+
+      // Check for inverted rules first
+      const isInvertedDenied = role.abilityRules.some(rule => 
+        rule.inverted && rule.action === action && rule.subject === requestedRoute
+      );
+
+      if (isInvertedDenied) {
+        return res.status(403).json({ success: false, message: `Access denied for ${requestedRoute}` });
+      }
+
+      // Check for general and specific permissions
+      const hasPermission = role.abilityRules.some(rule => {
+        if (rule.action === 'manage' && rule.subject === 'all') {
+          return true; // Full access granted
+        }
+
+        if (rule.action === action) {
+          if (rule.subject === 'halaman-profil-pengguna' && userId && id === parseInt(userId)) {
+            return true; // Allow access if the user is accessing their own profile
+          }
+
+          return rule.subject === requestedRoute || rule.subject === 'all';
+        }
+
+        return false;
+      });
+
+      if (hasPermission) {
+        return next();
+      } else {
+        return res.status(403).json({ success: false, message: `Access denied for ${requestedRoute}` });
+      }
+    });
+  } catch (error) {
+    console.error('Error checking user permissions:', error);
+    return res.status(500).json({ success: false, message: 'Internal server error, please try again later' });
+  }
+
+
   
   
   function mapMethodToAction(method) {

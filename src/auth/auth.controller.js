@@ -16,6 +16,7 @@ const NodeCache = require("node-cache")
 const permissionsCache = new NodeCache();
 const userService = require("./auth.service");
 const session = require("express-session");
+
 router.post("/login", upload.none(), async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -33,17 +34,27 @@ router.post("/login", upload.none(), async (req, res) => {
 
         if (user) {
           // Authentication successful
-          const token = authService.generateAuthToken(email);
+          // const token = authService.generateAuthToken(email);
           const { id, ...karyawan } = await authKaryawan.getKaryawanById(user.karyawan_id);
 
-          // Store user data in session
-          req.session.user = {
-            id: user.id,
-            role_id: user.role_id,
-          };
+            // Create JWT token
+            const token = jwt.sign({
+              id: user.id,
+              role_id: user.role_id,
+          }, 'lori', { // Replace 'your-secret-key' with a strong secret key
+              expiresIn: '24h', // Token expires in 1 hour
+            });
+  
+            // Store token in cookie
+            res.cookie('authToken', token, {
+              httpOnly: true, // Cookie is not accessible via JavaScript
+              secure: process.env.NODE_ENV === 'production', // Set true in production
+              sameSite: 'Lax', // Adjust based on your cross-origin needs
+              maxAge: 3600000, // 1 hour in milliseconds
+            });
 
-          // Debugging: Log session data
-          console.log('Session data after injection:', req.session);
+          // Debugging: Log cookies data
+          console.log('Cookies data after injection:', req.cookies);
 
           // Prepare response data
           const response = {
@@ -73,15 +84,7 @@ router.post("/login", upload.none(), async (req, res) => {
             maxAge: 3600000, // 1 hour in milliseconds
           });
 
-          // Commit session changes and send response
-          req.session.save((err) => {
-            if (err) {
-              console.error('Session save error:', err);
-              return res.status(500).json({ message: 'Session save error' });
-            }
-            console.log('Session saved:', req.session); // Log session after saving
-            res.json(response);
-          });
+          res.json(response);
         } else {
           // User not found, authentication failed
           res.status(401).json({ message: 'User Tidak Ditemukan' });
@@ -99,6 +102,7 @@ router.post("/login", upload.none(), async (req, res) => {
     res.status(500).json({ message: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
   }
 });
+
 
 
 
