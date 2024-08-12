@@ -42,14 +42,14 @@ router.post("/login", upload.none(), async (req, res) => {
               id: user.id,
               role_id: user.role_id,
           }, 'lori', { // Replace 'your-secret-key' with a strong secret key
-              expiresIn: '24h', // Token expires in 1 hour
+              expiresIn: '1h', // Token expires in 1 hour
             });
   
             // Store token in cookie
             res.cookie('authToken', token, {
               httpOnly: true, // Cookie is not accessible via JavaScript
-              secure: process.env.NODE_ENV === 'production', // Set true in production
-              sameSite: 'Lax', // Adjust based on your cross-origin needs
+              secure: false, // Set true in production
+              // sameSite: 'Lax', // Adjust based on your cross-origin needs
               maxAge: 3600000, // 1 hour in milliseconds
             });
 
