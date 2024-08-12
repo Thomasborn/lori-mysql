@@ -1,107 +1,103 @@
-const express = require("express");
+const express = require("express")
 const dotenv = require("dotenv");
-const cookieParser = require("cookie-parser");
+const cookieParser = require("cookie-parser"); // Add cookie-parser
+const verifyToken = require("./middleware/auth_jwt");
+const verifyAccess = require("./middleware/access");
 const { PrismaClient } = require("@prisma/client");
+const prisma= new PrismaClient();
+const AuthController = require("./auth/auth.controller")
 const path = require('path');
 const fs = require('fs');
 const session = require('express-session');
-const cors = require("cors");
-
-const AuthController = require("./auth/auth.controller");
 const router = require('./router/index');
-
-// Initialize environment variables
-dotenv.config();
-
-const app = express();
-const prisma = new PrismaClient();
-
-// Directory setup
+const cors = require("cors"); // Import the cors package
 const publicDirectory = path.join(__dirname, 'public');
-if (!fs.existsSync(publicDirectory)) {
-  fs.mkdirSync(publicDirectory);
-}
+fs.existsSync(publicDirectory) || fs.mkdirSync(publicDirectory);
 
-// Middleware
+dotenv.config();
+const  app = express();
+// const bodyParser = require('body-parser');
 app.use(cookieParser());
 app.use(express.static(publicDirectory));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json())
+// app.set('trust proxy', 1); // Trust the first proxy in the chain (if behind a proxy like Nginx)
 
-// CORS configuration
 const corsOptions = {
   origin: [
     'http://localhost:5173',
     'http://localhost.devl:5173',
-  ],
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    'https://omahit.online/'
+  ], // Replace with your frontend URLs
+  methods: ['GET', 'POST', 'PUT', 'DELETE'], // Allow specific HTTP methods
+  // allowedHeaders: ['Content-Type', 'Authorization'], // Allow specific headers
   credentials: true, // Allow credentials (cookies, etc.)
-  allowedHeaders: ['Content-Type', 'Authorization'], // Allow specific headers
 };
 
-// Apply CORS middleware
-app.use(cors(corsOptions));
 
-// Session configuration
+app.use(cors(corsOptions));
+app.use(express.urlencoded({ extended: true }));
+
+const PORT = process.env.PORT;
+app.get("/apis",(req,res) => {
+    res.send("Hello World");
+});
+
 app.use(
   session({
     secret: 'lori',
     resave: true,
     saveUninitialized: true,
     cookie: {
-      secure: false, // Set to true if using HTTPS
+      secure: false,
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      secure: false,
       httpOnly: true,
       sameSite: 'lax',
     },
   })
 );
-
-// Routes
-app.get("/apis", (req, res) => {
-  res.send("Hello World");
-});
-
 app.post('/login', async (req, res) => {
-  try {
-    // Your login logic
-    req.session.user = {
-      id: 1,
-      role_id: 2,
-    };
-    req.session.save(err => {
-      if (err) {
-        console.error('Session save error:', err);
-        return res.status(500).json({ message: 'Session save error' });
-      }
-      res.json({ message: 'Login successful', session: req.session });
-    });
-  } catch (error) {
-    console.error('Error during login:', error);
-    res.status(500).json({ message: 'Internal server error', error: error.message });
-  }
+  // Your login logic
+  req.session.user = {
+    id: 1,
+    role_id: 2,
+  };
+  req.session.save(err => {
+    if (err) {
+      console.error('Session save error:', err);
+      return res.status(500).json({ message: 'Session save error' });
+    }
+    res.json({ message: 'Login successful', session: req.session });
+  });
 });
-
 app.get('/session-check', async (req, res) => {
   try {
-    if (req.session && req.session.user) {
-      res.json({ session: req.session, cookie: req.cookies });
+    // Check if session and user data exist
+    if (req.session ) {
+      // Send session data if user is authenticated
+      res.json({ session: req.session ,cookie:req.cookies});
     } else {
+      // If session or user data is missing, send a 401 response
       res.status(401).json({ message: 'No active session' });
     }
   } catch (error) {
+    // Log the error for debugging purposes
     console.error('Error in /session-check:', error);
+
+    // Send a generic error response
     res.status(500).json({ message: 'Internal server error', error: error.message });
   }
 });
 
-app.use("/auth", AuthController);
-app.use("/api/auth", AuthController);
+  // app.use(bodyParser.json());
+app.use("/auth",AuthController);  
+app.use("/api/auth",AuthController);  
+// app.use("/",router);
 app.use('/public', express.static(path.join(__dirname, 'public')));
-app.use("/api", router);
+app.use("/api",router);
 
-// Start the server
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log("Server running on port: " + PORT);
+  
+
+app.listen(PORT, ()=>{
+    console.log("JALAN LORI NYA IN PORT: "+PORT);
 });
