@@ -55,14 +55,25 @@ app.use(
     },
   })
 );
+app.get('/session-check', async (req, res) => {
+  try {
+    // Check if session and user data exist
+    if (req.session && req.session.user) {
+      // Send session data if user is authenticated
+      res.json({ session: req.session });
+    } else {
+      // If session or user data is missing, send a 401 response
+      res.status(401).json({ message: 'No active session' });
+    }
+  } catch (error) {
+    // Log the error for debugging purposes
+    console.error('Error in /session-check:', error);
 
-app.get('/session-check', (req, res) => {
-  if (req.session && req.session.user) {
-    res.json({ session: req.session });
-  } else {
-    res.status(401).json({ message: 'No active session' });
+    // Send a generic error response
+    res.status(500).json({ message: 'Internal server error', error: error.message });
   }
 });
+
   // app.use(bodyParser.json());
 app.use("/auth",AuthController);  
 app.use("/api/auth",AuthController);  
