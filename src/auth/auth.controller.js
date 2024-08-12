@@ -19,6 +19,8 @@ const session = require("express-session");
 router.post("/login", upload.none(), async (req, res) => {
   try {
     const { email, password } = req.body;
+
+    // Retrieve hashed password for the provided email
     const hashedPassword = await authService.checkPasswordByEmail(email);
 
     if (hashedPassword) {
@@ -35,15 +37,14 @@ router.post("/login", upload.none(), async (req, res) => {
           const { id, ...karyawan } = await authKaryawan.getKaryawanById(user.karyawan_id);
 
           // Store user data in session
-          if (!req.session.user) {
-            req.session.user = {};
-          }
           req.session.user = {
             id: user.id,
             role_id: user.role_id,
           };
- // Debugging: Log session data
- console.log('Session data after injection:', req.session);
+
+          // Debugging: Log session data
+          console.log('Session data after injection:', req.session);
+
           // Prepare response data
           const response = {
             userData: {
@@ -54,7 +55,6 @@ router.post("/login", upload.none(), async (req, res) => {
               email: user.email,
               username: karyawan.username,
               status: karyawan.status,
-              session:req.session
             },
             accessToken: token,
             userAbilityRules: user.role.abilityRules.map(rule => ({
@@ -64,19 +64,23 @@ router.post("/login", upload.none(), async (req, res) => {
               conditions: rule.conditions ? { userId: user.id } : undefined,
             })),
           };
-          
 
           // Set authentication cookie
-          res.cookie('authToken', token, { 
-            httpOnly: true, // Allows client-side access
+          res.cookie('authToken', token, {
+            httpOnly: true,
             secure: process.env.NODE_ENV === 'production', // Set true in production
-            sameSite: 'Lax', // Or 'None' if you need cross-site requests
+            sameSite: 'Lax', // Adjust based on your cross-origin needs
             maxAge: 3600000, // 1 hour in milliseconds
           });
-          
 
-          // Send response
-          res.json(response);
+          // Commit session changes and send response
+          req.session.save((err) => {
+            if (err) {
+              console.error('Session save error:', err);
+              return res.status(500).json({ message: 'Session save error' });
+            }
+            res.json(response);
+          });
         } else {
           // User not found, authentication failed
           res.status(401).json({ message: 'User Tidak Ditemukan' });
@@ -87,13 +91,14 @@ router.post("/login", upload.none(), async (req, res) => {
       }
     } else {
       // User not found, authentication failed
-      res.status(401).json({ message: `User Tidak Ditemukan dengan email : ${email}` });
+      res.status(401).json({ message: `User Tidak Ditemukan dengan email: ${email}` });
     }
   } catch (err) {
     console.error('Error in user authentication:', err);
     res.status(500).json({ message: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
   }
 });
+
 
 
 
