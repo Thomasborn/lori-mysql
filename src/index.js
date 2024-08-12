@@ -43,6 +43,7 @@ app.get("/apis",(req,res) => {
 app.use(cookieParser());
 app.use(
   session({
+    store: new RedisStore({ client: redisClient }),
     secret: 'lori',
     resave: false,
     saveUninitialized: true,
