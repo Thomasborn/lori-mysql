@@ -15,6 +15,7 @@ const router = express.Router();
 const NodeCache = require("node-cache")
 const permissionsCache = new NodeCache();
 const userService = require("./auth.service");
+const session = require("express-session");
 router.post("/login", upload.none(), async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -41,7 +42,8 @@ router.post("/login", upload.none(), async (req, res) => {
             id: user.id,
             role_id: user.role_id,
           };
-
+ // Debugging: Log session data
+ console.log('Session data after injection:', req.session);
           // Prepare response data
           const response = {
             userData: {
@@ -51,7 +53,8 @@ router.post("/login", upload.none(), async (req, res) => {
               role: user.role.name,
               email: user.email,
               username: karyawan.username,
-              status: karyawan.status
+              status: karyawan.status,
+              session:req.session
             },
             accessToken: token,
             userAbilityRules: user.role.abilityRules.map(rule => ({
