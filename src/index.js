@@ -40,16 +40,25 @@ app.get("/apis",(req,res) => {
 
 app.use(cookieParser());
 app.use(
-    session({
-      secret: 'lori',
-      resave: false,
-      saveUninitialized: true,
-      cookie: {
-        maxAge: 24 * 60 * 60 * 1000, // 24 hours (in milliseconds)
+  session({
+    secret: 'lori',
+    resave: false,
+    saveUninitialized: true,
+    cookie: {
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      secure: false,
+      httpOnly: true,
+      sameSite: 'lax',
     },
-    })
-  );
-
+  })
+);
+app.get('/session-check', (req, res) => {
+  if (req.session && req.session.user) {
+    res.json({ session: req.session });
+  } else {
+    res.status(401).json({ message: 'No active session' });
+  }
+});
   // app.use(bodyParser.json());
 app.use("/auth",AuthController);  
 app.use("/api/auth",AuthController);  
