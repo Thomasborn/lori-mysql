@@ -19,6 +19,8 @@ const  app = express();
 dotenv.config();
 app.use(express.static(publicDirectory));
 app.use(express.json())
+app.set('trust proxy', 1); // Trust the first proxy in the chain (if behind a proxy like Nginx)
+
 app.use(express.urlencoded({ extended: true }));
 const corsOptions = {
   origin: [
@@ -45,6 +47,7 @@ app.use(
     resave: false,
     saveUninitialized: true,
     cookie: {
+      secure: process.env.NODE_ENV === 'production',
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
       secure: false,
       httpOnly: true,
@@ -52,6 +55,7 @@ app.use(
     },
   })
 );
+
 app.get('/session-check', (req, res) => {
   if (req.session && req.session.user) {
     res.json({ session: req.session });
