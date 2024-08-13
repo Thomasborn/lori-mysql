@@ -24,10 +24,10 @@ app.use(express.json())
 
 const corsOptions = {
   origin: [
+    'https://f60f-2001-448a-4040-8827-8dea-1d75-ad9c-ed9e.ngrok-free.app',
     'http://localhost:5173',
     'http://localhost.devl:5173',
     'https://omahit.online/',
-    'https://f60f-2001-448a-4040-8827-8dea-1d75-ad9c-ed9e.ngrok-free.app/'
   ], // Replace with your frontend URLs
   methods: ['GET', 'POST', 'PUT', 'DELETE'], // Allow specific HTTP methods
   allowedHeaders: [
