@@ -81,7 +81,7 @@ router.post("/login", upload.none(), async (req, res) => {
           res.cookie('authToken', token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production', // Set true in production
-            sameSite: 'Lax', // Adjust based on your cross-origin needs
+            sameSite: 'None', // Adjust based on your cross-origin needs
             maxAge: 3600000, // 1 hour in milliseconds
           });
 
