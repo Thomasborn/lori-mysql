@@ -48,10 +48,11 @@ router.post("/login", upload.none(), async (req, res) => {
             // Store token in cookie
             res.cookie('authToken', token, {
               httpOnly: true, // Cookie is not accessible via JavaScript
-              secure: false, // Set true in production
-              // sameSite: 'Lax', // Adjust based on your cross-origin needs
+              secure: process.env.NODE_ENV === 'production', // Set secure to true in production
+              sameSite: 'None', // Allow cross-origin requests
               maxAge: 3600000, // 1 hour in milliseconds
             });
+            
 
           // Debugging: Log cookies data
           console.log('Cookies data after injection:', req.cookies);
