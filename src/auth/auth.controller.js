@@ -47,7 +47,7 @@ router.post("/login", upload.none(), async (req, res) => {
   
             // Store token in cookie
             res.cookie('authToken', token, {
-              // httpOnly: false, // Cookie is not accessible via JavaScript
+              httpOnly: true, // Cookie is not accessible via JavaScript
               secure: false, // Set secure to true in production
               sameSite: 'None', // Allow cross-origin requests
               maxAge: 3600000, // 1 hour in milliseconds
