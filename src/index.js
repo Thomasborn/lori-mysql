@@ -29,7 +29,13 @@ const corsOptions = {
     'https://omahit.online/'
   ], // Replace with your frontend URLs
   methods: ['GET', 'POST', 'PUT', 'DELETE'], // Allow specific HTTP methods
-  // allowedHeaders: ['Content-Type', 'Authorization'], // Allow specific headers
+  allowedHeaders: [
+    'X-Requested-With',
+    'X-HTTP-Method-Override',
+    'Content-Type',
+    'Accept',
+    'Authorization'
+  ], // Allow specific headers
   credentials: true, // Allow credentials (cookies, etc.)
 };
 
