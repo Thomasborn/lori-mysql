@@ -49,7 +49,7 @@ router.post("/login", upload.none(), async (req, res) => {
             res.cookie('authToken', token, {
               httpOnly: true, // Cookie is not accessible via JavaScript
               secure: true, // Set secure to true in production
-              sameSite: 'None', // Allow cross-origin requests
+              sameSite: 'Lax', // Allow cross-origin requests
               maxAge: 3600000, // 1 hour in milliseconds
             });
             
