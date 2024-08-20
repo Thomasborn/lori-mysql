@@ -27,6 +27,7 @@ const corsOptions = {
     'https://f60f-2001-448a-4040-8827-8dea-1d75-ad9c-ed9e.ngrok-free.app',
     'https://4c84-2001-448a-4040-3451-3993-677-9063-965b.ngrok-free.app',
     'http://localhost:5173',
+    'http://localhost:3000',
     'http://localhost.devl:5173',
     'https://omahit.online/',
   ], // Replace with your frontend URLs
