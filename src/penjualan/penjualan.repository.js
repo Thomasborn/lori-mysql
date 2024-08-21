@@ -44,14 +44,22 @@ const findPenjualan = async (query) => {
       };
     }
 
-    if (q !== undefined && q !== null) {
-      whereCondition.OR = [
-        { user: { karyawan: { nama: { contains: q, mode: 'insensitive' } } } }
-      ];
-    }
-
     const penjualan = await prisma.penjualan.findMany({
-      where: whereCondition,
+      where: {
+        ...whereCondition,
+        OR: q ? [
+          { 
+            user: { 
+              karyawan: { 
+                nama: { 
+                  contains: q, 
+                  lte: 'insensitive' // Use mode as an argument here
+                } 
+              } 
+            }
+          }
+        ] : undefined
+      },
       skip: offset,
       take: parseInt(itemsPerPage),
       include: {
@@ -71,6 +79,7 @@ const findPenjualan = async (query) => {
         }
       }
     });
+    
 
     const totalData = await prisma.penjualan.count({
       where: whereCondition

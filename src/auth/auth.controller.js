@@ -36,7 +36,14 @@ router.post("/login", upload.none(), async (req, res) => {
           // Authentication successful
           // const token = authService.generateAuthToken(email);
           const { id, ...karyawan } = await authKaryawan.getKaryawanById(user.karyawan_id);
-
+ // Store user data in session
+ if (!req.session.user) {
+  req.session.user = {};
+}
+req.session.user = {
+  id: user.id,
+  role_id: user.role_id,
+};
             // Create JWT token
             const token = jwt.sign({
               id: user.id,

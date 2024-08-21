@@ -8,6 +8,7 @@ const {
   getDashboardPendapatanPengeluaran,
   getPeringkatPenjahit,
   getPeringkatSales,
+  getDashboardPeringkatProduk,
 } = require("./dashboard.service");
 
 const router = express.Router();

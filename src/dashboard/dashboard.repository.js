@@ -544,7 +544,7 @@ const findDashboardPendapatanPengeluaran = async (tahun) => {
           },
           role: {
             select: {
-              nama: true,
+              name: true,
             },
           },
         },

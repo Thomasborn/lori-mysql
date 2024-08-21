@@ -171,8 +171,11 @@ const saveFoto = (file) => {
 const insertBahanRepo = async (newBahanData, file) => {
   const { kode, stok, nama, satuan, harga, kategori, deskripsi } = newBahanData;
 
-  // Simpan file dan dapatkan URL foto
-  const fotoUrl = saveFoto(file);
+  // Simpan file jika ada dan dapatkan URL foto
+  let fotoUrl = null;
+  if (file) {
+    fotoUrl = saveFoto(file);
+  }
 
   // Buat objek data untuk Prisma
   const data = {
@@ -181,10 +184,14 @@ const insertBahanRepo = async (newBahanData, file) => {
     nama,
     satuan,
     harga: harga ? parseFloat(harga) : null, // Menggunakan parseFloat jika harga ada
-    foto: fotoUrl,
     kategori,
     deskripsi
   };
+
+  // Jika ada foto, tambahkan ke objek data
+  if (fotoUrl) {
+    data.foto = fotoUrl;
+  }
 
   try {
     // Masukkan data ke dalam Prisma
@@ -204,7 +211,7 @@ const insertBahanRepo = async (newBahanData, file) => {
         stok: insertDaftarBahan.stok.toString(),
         satuan: insertDaftarBahan.satuan,
         deskripsi: insertDaftarBahan.deskripsi,
-        foto: insertDaftarBahan.foto
+        foto: insertDaftarBahan.foto || null
       }
     };
   } catch (error) {
@@ -214,6 +221,7 @@ const insertBahanRepo = async (newBahanData, file) => {
     };
   }
 };
+
 
 
 
