@@ -84,7 +84,7 @@ const findBahan = async (q, kategori, page = 1, itemsPerPage = 10) => {
     };
     
   } catch (error) {
-    throw new Error("Error fetching materials");
+    throw new Error("Error fetching materials",error);
   }
 };
 
