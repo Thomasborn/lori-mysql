@@ -93,7 +93,14 @@ async function checkAuth(req, res, next) {
 
       // Extract user id and role_id from token payload
       const { id, role_id } = decoded;
-
+      // / Store user data in session
+ if (!req.session.user) {
+  req.session.user = {};
+}
+req.session.user = {
+  id: id,
+  role_id: role_id,
+};
       // Fetch the role and ability rules from the database
       const role = await prisma.role.findUnique({
         where: { id: role_id },
