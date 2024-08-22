@@ -74,7 +74,7 @@ const findDaftarProduk = async ( q, kategori,outletId, page = 1, itemsPerPage = 
                 model_produk: {
                   nama_produk: {
                     contains: q,
-                    mode: 'insensitive',
+                    lte: 'insensitive',
                   },
                 },
               },
@@ -82,7 +82,7 @@ const findDaftarProduk = async ( q, kategori,outletId, page = 1, itemsPerPage = 
                 model_produk: {
                   kode: {
                     contains: q,
-                    mode: 'insensitive',
+                    lte: 'insensitive',
                   },
                 },
               },

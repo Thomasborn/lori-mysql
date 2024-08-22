@@ -45,7 +45,7 @@
 
 //         if (q) {
 //             whereCondition.OR = [
-//                 { user: { karyawan: { nama: { contains: q, mode: 'insensitive' } } } }
+//                 { user: { karyawan: { nama: { contains: q, lte: 'insensitive' } } } }
 //             ];
 //         }
 
@@ -157,7 +157,7 @@ const findLaporanPenjualan = async (query, isExport) => {
 
         if (q) {
             whereCondition.OR = [
-                { user: { karyawan: { nama: { contains: q, mode: 'insensitive' } } } }
+                { user: { karyawan: { nama: { contains: q, lte: 'insensitive' } } } }
             ];
         }
 

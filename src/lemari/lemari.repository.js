@@ -12,7 +12,7 @@ const findLemari = async (q, page = 1, itemsPerPage = 10) => {
     let whereClause = {};
     if (q) {
       whereClause = {
-        kode: { contains: q.toString(), mode: 'insensitive' }
+        kode: { contains: q.toString(), lte: 'insensitive' }
       };
     }
 

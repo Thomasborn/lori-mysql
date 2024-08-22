@@ -22,8 +22,8 @@ const finduser = async (q, role, status, page = 1, itemsPerPage = 10) => {
     // Build the search filter object
     const where = {
       AND: [
-        q ? { username: { contains: q, mode: 'insensitive' } } : {},
-        role ? { role: { nama: { contains: role, mode: 'insensitive' } } } : {},
+        q ? { username: { contains: q, lte: 'insensitive' } } : {},
+        role ? { role: { nama: { contains: role, lte: 'insensitive' } } } : {},
         status ? { status: status } : {} // Directly filter by user status
       ]
     };

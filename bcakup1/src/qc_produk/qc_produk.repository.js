@@ -24,7 +24,7 @@ const findQcProduk = async (query) => {
         ? { tanggal_selesai: { lte: new Date(tahunSelesai, bulanSelesai, 0) } }
         : {},
       status ? { status: status } : {},
-      q ? { user: { karyawan: { nama: { contains: q, mode: 'insensitive' } } } } : {},
+      q ? { user: { karyawan: { nama: { contains: q, lte: 'insensitive' } } } } : {},
     ],
   };
 

@@ -46,7 +46,7 @@ const findPenjualan = async (query) => {
 
     if (q !== undefined && q !== null) {
       whereCondition.OR = [
-        { user: { karyawan: { nama: { contains: q, mode: 'insensitive' } } } }
+        { user: { karyawan: { nama: { contains: q, lte: 'insensitive' } } } }
       ];
     }
 

@@ -8,8 +8,8 @@ const findoutlet = async (q, page = 1, itemsPerPage = 10) => {
     // Construct search criteria
     const whereClause = q ? {
       OR: [
-        { nama: { contains: q, mode: 'insensitive' } },
-        { kode: { contains: q, mode: 'insensitive' } },
+        { nama: { contains: q, lte: 'insensitive' } },
+        { kode: { contains: q, lte: 'insensitive' } },
       ]
     } : {};
 

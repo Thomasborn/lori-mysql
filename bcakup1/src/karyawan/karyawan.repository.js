@@ -8,7 +8,7 @@ const findkaryawan = async (q, posisi, status, gender, sortBy, page = 1, itemsPe
       // Prepare search criteria based on input parameters
       const where = {
           AND: [
-              q ? { nama: { contains: q, mode: 'insensitive' } } : {},
+              q ? { nama: { contains: q, lte: 'insensitive' } } : {},
               posisi ? { posisi: { equals: posisi } } : {},
               status ? { status: { equals: status } } : {},
               gender ? { jenis_kelamin: { equals: gender } } : {}

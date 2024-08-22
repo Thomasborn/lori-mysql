@@ -8,8 +8,8 @@ const findGawangan = async (q, page = 1, itemsPerPage = 10) => {
     // Construct search criteria
     const whereClause = q ? {
       OR: [
-        { kode: { contains: q, mode: 'insensitive' } },
-        { deskripsi: { contains: q, mode: 'insensitive' } },
+        { kode: { contains: q, lte: 'insensitive' } },
+        { deskripsi: { contains: q, lte: 'insensitive' } },
       ]
     } : {};
 

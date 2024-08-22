@@ -74,13 +74,13 @@ const findDaftarProdukList = async (q = {}, page = 1, itemsPerPage = 10) => {
             {
               nama: {
                 contains: q,
-                mode: 'insensitive',
+                lte: 'insensitive',
               },
             },
             {
               kode: {
                 contains: q,
-                mode: 'insensitive',
+                lte: 'insensitive',
               },
             },
           ],

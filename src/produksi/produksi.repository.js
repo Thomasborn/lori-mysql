@@ -31,7 +31,7 @@ const findProduk = async (query) => {
         karyawan: {
           nama: {
             contains: q,
-            mode: 'insensitive',
+            lte: 'insensitive',
           },
         },
       },

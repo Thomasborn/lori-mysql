@@ -16,8 +16,8 @@ const findBahan = async (q, kategori, page = 1, itemsPerPage = 10) => {
     const whereClause = {};
     if (q) {
       whereClause.OR = [
-        { nama: { contains: q, mode: 'insensitive' } },
-        { kode: { contains: q, mode: 'insensitive' } },
+        { nama: { contains: q, lte: 'insensitive' } },
+        { kode: { contains: q, lte: 'insensitive' } },
       ];
     }
     if (kategori) {
