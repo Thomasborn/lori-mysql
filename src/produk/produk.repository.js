@@ -1,4 +1,5 @@
 
+
 const prisma = require("../db");
 
 const {
@@ -132,12 +133,12 @@ const findDaftarProduk = async ( q, kategori,outletId, page = 1, itemsPerPage = 
       take: itemsPerPage,
     });
 
-    if (produkOutletList.length === 0) {
-      return {
-        success: false,
-        message: "Tidak ada produk yang ditemukan untuk outlet yang ditentukan",
-      };
-    }
+    // if (produkOutletList.length === 0) {
+    //   return {
+    //     success: false,
+    //     message: "Tidak ada produk yang ditemukan untuk outlet yang ditentukan",
+    //   };
+    // }
 
     const transformedDataList = produkOutletList.map(produkOutlet => {
       const { detail_model_produk, outlet } = produkOutlet;

@@ -79,24 +79,24 @@ app.post('/login', async (req, res) => {
     res.json({ message: 'Login successful', session: req.session });
   });
 });
-app.get('/session-check', async (req, res) => {
-  try {
-    // Check if session and user data exist
-    if (req.session ) {
-      // Send session data if user is authenticated
-      res.json({ session: req.session ,cookie:req.cookies});
-    } else {
-      // If session or user data is missing, send a 401 response
-      res.status(401).json({ message: 'No active session' });
-    }
-  } catch (error) {
-    // Log the error for debugging purposes
-    console.error('Error in /session-check:', error);
+// app.get('/session-check', async (req, res) => {
+//   try {
+//     // Check if session and user data exist
+//     if (req.session ) {
+//       // Send session data if user is authenticated
+//       res.json({ session: req.session ,cookie:req.cookies});
+//     } else {
+//       // If session or user data is missing, send a 401 response
+//       res.status(401).json({ message: 'No active session' });
+//     }
+//   } catch (error) {
+//     // Log the error for debugging purposes
+//     console.error('Error in /session-check:', error);
 
-    // Send a generic error response
-    res.status(500).json({ message: 'Internal server error', error: error.message });
-  }
-});
+//     // Send a generic error response
+//     res.status(500).json({ message: 'Internal server error', error: error.message });
+//   }
+// });
 
   // app.use(bodyParser.json());
 app.use("/auth",AuthController);  

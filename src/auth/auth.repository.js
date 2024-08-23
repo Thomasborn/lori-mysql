@@ -11,6 +11,7 @@ async function findByEmailAndPassword(email, password) {
           password, // Replace with the actual user ID or use a different field if necessary
         },
         include:{
+          karyawan: true,
           role: {
             include: {
               abilityRules: true,

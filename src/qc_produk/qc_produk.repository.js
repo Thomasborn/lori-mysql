@@ -28,19 +28,31 @@ const findQcProduk = async (query) => {
     ],
   };
 
-  const qc_produk = await prisma.qc_produk.findMany({
-    where,
-    include: {
-      produk_outlet: true,
-      user: {
-        include: {
-          karyawan: true,
+ const qc_produk = await prisma.qc_produk.findMany({
+  where,
+  select: {
+    id: true,  // Scalar fields you need
+    produk: {
+      select: {
+        id: true,  // Nested fields in related models
+      },
+    },
+    user: {
+      select: {
+        id: true,
+        karyawan: {
+          select: {
+            id: true,
+            nama: true,
+          },
         },
       },
     },
-    take,
-    skip,
-  });
+  },
+  take,
+  skip,
+});
+
 
   const totalData = await prisma.qc_produk.count({ where });
 
@@ -76,7 +88,7 @@ const findQcProdukById = async (id) => {
   const qc_produk = await prisma.qc_produk.findUnique({
     where: { id },
     include: {
-      produk_outlet: true,
+      produk: true,
       user: {
         include: {
           karyawan: true,

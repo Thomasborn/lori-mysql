@@ -88,7 +88,7 @@ async function checkAuth(req, res, next) {
     // Verify the token
     jwt.verify(token, 'lori', async (err, decoded) => {
       if (err) {
-        return res.status(403).json({ success: false, message: 'Token is invalid' });
+        return res.status(401).json({ success: false, message: 'Token is invalid' });
       }
 
       // Extract user id and role_id from token payload

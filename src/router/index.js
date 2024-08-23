@@ -78,6 +78,7 @@ router.use("/master/produk", verifyAccess, ProdukController);
 router.use("/master/bahan", verifyAccess, DaftarBahanController);
 router.use("/master/rak", verifyAccess, LemariController);
 router.use("/master/karyawan", verifyAccess, KaryawanController);
+router.use("/", verifyAccess, AuthController);
 
 // LAPORAN ROUTES
 router.use("/laporan/penjualan", verifyAccess, LaporanController);

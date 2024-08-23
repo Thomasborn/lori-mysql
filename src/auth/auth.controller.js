@@ -69,13 +69,13 @@ req.session.user = {
             userData: {
               id: user.id,
               idKaryawan: user.karyawan_id,
-              nama: karyawan.nama,
+              nama: user.karyawan.nama,
               role: user.role.name,
               email: user.email,
-              username: karyawan.username,
+              username: user.username,
               status: karyawan.status,
             },
-            accessToken: token,
+            // accessToken: token,
             userAbilityRules: user.role.abilityRules.map(rule => ({
               action: rule.action,
               subject: rule.subject,
@@ -111,12 +111,6 @@ req.session.user = {
   }
 });
 
-
-
-
-
-
-
 router.post("/register", upload.none(),async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -139,6 +133,7 @@ router.post("/register", upload.none(),async (req, res) => {
       res.status(500).json({ message: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
     }
 }});
+
 router.post('/logout', (req, res) => {
   const cookieName = 'authToken';
 
@@ -156,6 +151,93 @@ router.post('/logout', (req, res) => {
     permissionsCache.flushAll();
 
   res.json({ message: `Berhasil keluar. '${cookieName}' dihapus` });
+});
+router.get('/session-check', (req, res) => {
+  try {
+    // Extract token from cookies
+    const token = req.cookies.authToken;
+
+    if (!token) {
+      return res.status(401).json({ success: false, message: 'No token provided' });
+    }
+
+    // Verify the token
+    jwt.verify(token, 'lori', async (err, decoded) => {
+      if (err) {
+        return res.status(401).json({ success: false, message: 'Token is invalid' });
+      }
+
+      // Extract user id and role_id from token payload
+      const { id, role_id } = decoded;
+      // / Store user data in session
+ if (!req.session.user) {
+  req.session.user = {};
+}
+req.session.user = {
+  id: id,
+  role_id: role_id,
+};
+      // Fetch the role and ability rules from the database
+      const role = await prisma.role.findUnique({
+        where: { id: role_id },
+        include: { abilityRules: true },
+      });
+
+      if (!role) {
+        return res.status(403).json({ success: false, message: 'Role not found' });
+      }
+
+      // Define method to action mapping
+      const methodToActionMap = {
+        get: 'read',
+        post: 'create',
+        put: 'update',
+        patch: 'update',
+        delete: 'delete',
+      };
+      
+      const method = req.method.toLowerCase();
+      const action = methodToActionMap[method];
+      const requestedRoute = req.originalUrl.split('?')[0].split('/').slice(2, 4).join('-');
+      const urlParts = req.originalUrl.split('?')[0].split('/');
+      const userId = urlParts[3];
+
+      // Check for inverted rules first
+      const isInvertedDenied = role.abilityRules.some(rule => 
+        rule.inverted && rule.action === action && rule.subject === requestedRoute
+      );
+
+      if (isInvertedDenied) {
+        return res.status(403).json({ success: false, message: `Access denied for ${requestedRoute}` });
+      }
+
+      // Check for general and specific permissions
+      const hasPermission = role.abilityRules.some(rule => {
+        if (rule.action === 'manage' && rule.subject === 'all') {
+          return true; // Full access granted
+        }
+
+        if (rule.action === action) {
+          if (rule.subject === 'halaman-profil-pengguna' && userId && id === parseInt(userId)) {
+            return true; // Allow access if the user is accessing their own profile
+          }
+
+          return rule.subject === requestedRoute || rule.subject === 'all';
+        }
+
+        return false;
+      });
+
+      if (hasPermission) {
+        res.json({ message: "Session valid" });
+      } else {
+        return res.status(403).json({ success: false, message: `Access denied for ${requestedRoute}` });
+      }
+    });
+  } catch (error) {
+    console.error('Error checking user permissions:', error);
+    return res.status(500).json({ success: false, message: 'Internal server error, please try again later' });
+  }
 });
 // Generate a random reset token
 function generateResetToken() {
