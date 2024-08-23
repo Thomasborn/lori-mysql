@@ -31,7 +31,7 @@ const findQcProduk = async (query) => {
   const qc_produk = await prisma.qc_produk.findMany({
     where,
     include: {
-      daftar_produk: true,
+      produk_outlet: true,
       user: {
         include: {
           karyawan: true,
@@ -48,11 +48,11 @@ const findQcProduk = async (query) => {
     id: qc.id,
     tanggalTemuan: qc.tanggal_temuan ? qc.tanggal_temuan.toLocaleDateString() : null,
     tanggalSelesai: qc.tanggal_selesai ? qc.tanggal_selesai.toLocaleDateString() : null,
-    idProduk: qc.daftar_produk.id,
-    kodeProduk: qc.daftar_produk.kode,
-    namaProduk: qc.daftar_produk.nama,
-    kategoriProduk: qc.daftar_produk.kategori,
-    ukuranProduk: qc.daftar_produk.ukuran,
+    idProduk: qc.produk_outlet.id,
+    kodeProduk: qc.produk_outlet.kode,
+    namaProduk: qc.produk_outlet.nama,
+    kategoriProduk: qc.produk_outlet.kategori,
+    ukuranProduk: qc.produk_outlet.ukuran,
     jumlah: qc.jumlah,
     tindakan: qc.tindakan,
     status: qc.status,
@@ -76,7 +76,7 @@ const findQcProdukById = async (id) => {
   const qc_produk = await prisma.qc_produk.findUnique({
     where: { id },
     include: {
-      daftar_produk: true,
+      produk_outlet: true,
       user: {
         include: {
           karyawan: true,
@@ -97,13 +97,13 @@ const findQcProdukById = async (id) => {
     id: qc_produk.id,
     tanggalTemuan: qc_produk.tanggal_temuan ? qc_produk.tanggal_temuan.toLocaleDateString() : null,
     tanggalSelesai: qc_produk.tanggal_selesai ? qc_produk.tanggal_selesai.toLocaleDateString() : null,
-    idOutlet: qc_produk.daftar_produk.id, // Assuming 'daftar_produk' has 'id' as outlet ID
-    namaOutlet: qc_produk.daftar_produk.nama, // Assuming 'daftar_produk' has 'nama' as outlet name
-    idVarian: qc_produk.daftar_produk.id, // Assuming 'daftar_produk' has 'id' as variant ID
-    kodeProduk: qc_produk.daftar_produk.kode,
-    namaProduk: qc_produk.daftar_produk.nama,
-    kategoriProduk: qc_produk.daftar_produk.kategori,
-    ukuranProduk: qc_produk.daftar_produk.ukuran,
+    idOutlet: qc_produk.produk_outlet.id, // Assuming 'produk_outlet' has 'id' as outlet ID
+    namaOutlet: qc_produk.produk_outlet.nama, // Assuming 'produk_outlet' has 'nama' as outlet name
+    idVarian: qc_produk.produk_outlet.id, // Assuming 'produk_outlet' has 'id' as variant ID
+    kodeProduk: qc_produk.produk_outlet.kode,
+    namaProduk: qc_produk.produk_outlet.nama,
+    kategoriProduk: qc_produk.produk_outlet.kategori,
+    ukuranProduk: qc_produk.produk_outlet.ukuran,
     jumlah: qc_produk.jumlah,
     tindakan: qc_produk.tindakan,
     status: qc_produk.status,
