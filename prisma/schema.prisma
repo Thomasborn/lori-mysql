@@ -186,7 +186,7 @@ model supplier {
   pic      String?
   alamat   String
   kontak   String
-  no_rek   String
+  no_rek   String?
   bank     String?
   nama_akun     String?
   restok_bahan restok_bahan[] // Add this if you want to establish a relation to restok_bahan
