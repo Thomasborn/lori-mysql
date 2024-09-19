@@ -188,6 +188,7 @@ model supplier {
   kontak   String
   no_rek   String?
   bank     String?
+  keterangan     String?
   nama_akun     String?
   restok_bahan restok_bahan[] // Add this if you want to establish a relation to restok_bahan
   created_at DateTime @default(now()) // Created timestamp
