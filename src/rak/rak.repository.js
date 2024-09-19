@@ -15,7 +15,6 @@ const findRak = async (q, page = 1, itemsPerPage = 10) => {
         kode: { contains: q.toString(), lte: 'insensitive' }
       };
     }
-
     // Fetch count of rak data based on search criteria
     const totalRak = await prisma.rak.count({
       where: whereClause,
@@ -40,6 +39,7 @@ const findRak = async (q, page = 1, itemsPerPage = 10) => {
       outlet: rak.outlet ? rak.outlet.nama : null,
       deskripsi: rak.deskripsi,
     }));
+    console,log(whereClause)
 
     return {
       success: true,
@@ -101,7 +101,7 @@ const insertRakRepo = async (newRakData) => {
     const rak = await prisma.rak.create({
       data: {
         kode: kode || null, // Menggunakan nilai default jika kode kosong
-        alamat: alamat || null, // Menggunakan nilai default jika alamat kosong
+        alamat: null, // Menggunakan nilai default jika alamat kosong
         kapasitas: kapasitas || null, // Menggunakan nilai default jika kapasitas kosong
         // stok: stok || 0, // Menggunakan nilai default 0 jika stok kosong
         // jumlah_barang: jumlah_barang || 0, // Menggunakan nilai default 0 jika jumlah_barang kosong
@@ -132,16 +132,22 @@ const insertRakRepo = async (newRakData) => {
     };
   }
 };
-
 const updateRakRepo = async (id, updatedRakData) => {
   const { kode, kapasitas, stok, jumlah_barang, idOutlet } = updatedRakData;
 
   try {
+    // Ensure ID is valid
+    const rakId = parseInt(id);
+    if (isNaN(rakId)) {
+      return {
+        success: false,
+        message: 'ID Rak tidak valid.',
+      };
+    }
+
     // Check if the rak exists
     const existingRak = await prisma.rak.findUnique({
-      where: {
-        id: parseInt(id),
-      },
+      where: { id: rakId },
     });
 
     if (!existingRak) {
@@ -151,43 +157,46 @@ const updateRakRepo = async (id, updatedRakData) => {
       };
     }
 
+    // Prepare data for update (use existing value if not provided)
+    const updatedData = {
+      kode: kode !== undefined ? kode : existingRak.kode,
+      kapasitas: kapasitas !== undefined ? kapasitas : existingRak.kapasitas,
+      deskripsi: deskripsi !== undefined ? deskripsi : existingRak.deskripsi,
+      // stok: stok !== undefined ? stok : existingRak.stok,
+      // Keep jumlah_barang logic if needed, or remove it if it's not required.
+      outlet: idOutlet ? { connect: { id: idOutlet } } : undefined, // Update only if idOutlet is provided
+    };
+
     // Update the rak
     const updatedRak = await prisma.rak.update({
-      where: {
-        id: parseInt(id),
-      },
-      data: {
-        kode,
-        kapasitas,
-        stok,
-        // jumlah_barang,
-        outlet: {
-          connect: {
-            id: idOutlet,
-          },
-        },
-      },
+      where: { id: rakId },
+      data: updatedData,
     });
+
+    // Reshape the updatedRak object for the response
     const reshapedRak = {
       id: updatedRak.id,
       kode: updatedRak.kode,
       kapasitas: updatedRak.kapasitas,
-      deskripsi: updatedRak.deskripsi,
+      stok: updatedRak.stok,
+      deskripsi: updatedRak.deskripsi || '',
       idOutlet: updatedRak.outlet_id,
     };
+
     return {
       success: true,
       message: `Data rak dengan ID ${id} berhasil diperbarui.`,
       data: reshapedRak,
     };
   } catch (error) {
-    console.error(error);
+    console.error('Error updating rak:', error);
     return {
       success: false,
       message: 'Terjadi kesalahan saat memperbarui data rak.',
     };
   }
 };
+
 
 const deleteRakByIdRepo = async (id) => {
   try {

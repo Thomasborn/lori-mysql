@@ -18,7 +18,7 @@ const getKaryawanById = async (id) => {
   return karyawan;
 };
 const deleteKaryawanById = async (id) => {
-  await getkaryawanById(id);
+  // await getkaryawanById(id);
   const karyawan = await deleteKaryawanByIdRepo(id)
  
   return karyawan;

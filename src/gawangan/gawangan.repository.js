@@ -77,7 +77,7 @@ const findGawanganById = async (id) => {
     id: gawangan.id,
     idOutlet: gawangan.outlet_id,
     kode: gawangan.kode,
-    deskripsi: gawangan.outlet.deskripsi ?? null,
+    deskripsi: gawangan.deskripsi ?? null,
   };
 
   return {

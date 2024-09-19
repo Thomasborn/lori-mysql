@@ -59,12 +59,14 @@ const findkaryawan = async (q, posisi, status, gender, sortBy, page = 1, itemsPe
   }
 };
 
-
 const findkaryawanById = async (id) => {
   try {
     const karyawan = await prisma.karyawan.findUnique({
       where: {
         id: parseInt(id),
+      },
+      include: {
+        outlet: true, // Include the related outlet data
       },
     });
 
@@ -85,6 +87,9 @@ const findkaryawanById = async (id) => {
       tanggal_lahir: karyawan.tanggal_lahir,
       noRekening: karyawan.no_rekening, // Assuming 'no_rekening' maps to 'noRekening' in your model
       foto: karyawan.foto,
+      email: karyawan.email,
+      idAfiliasiOutlet: karyawan.outlet_id,
+      namaAfiliasiOutlet: karyawan.outlet?.nama, // Safely access the outlet name
       posisi: karyawan.posisi,
       status: karyawan.status,
       bank: karyawan.bank,
@@ -104,6 +109,7 @@ const findkaryawanById = async (id) => {
     };
   }
 };
+
 
 const insertKaryawanRepo = async (newkaryawanData) => {
   try {
@@ -135,6 +141,7 @@ const insertKaryawanRepo = async (newkaryawanData) => {
         posisi,
         status,
         bank,
+        email,
         akun_bank: akunBank,
         outlet_id: parseInt(idAfiliasiOutlet) // Assuming akunBank maps to akun_bank
       },

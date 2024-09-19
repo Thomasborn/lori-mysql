@@ -9,12 +9,9 @@ const findLemari = async (q, page = 1, itemsPerPage = 10) => {
     const offset = (page - 1) * itemsPerPage;
 
     // Construct search criteria
-    let whereClause = {};
-    if (q) {
-      whereClause = {
-        kode: { contains: q.toString(), lte: 'insensitive' }
-      };
-    }
+    const whereClause = q 
+      ? { kode: { contains: q.toString(), lte: 'insensitive' } } 
+      : {};
 
     // Fetch count of lemari data based on search criteria
     const totalLemari = await prisma.lemari.count({
@@ -58,6 +55,7 @@ const findLemari = async (q, page = 1, itemsPerPage = 10) => {
     throw new Error("Error fetching lemari");
   }
 };
+
 
 
 

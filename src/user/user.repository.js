@@ -22,8 +22,8 @@ const finduser = async (q, role, status, page = 1, itemsPerPage = 10) => {
     // Build the search filter object
     const where = {
       AND: [
-        q ? { username: { contains: q, lte: 'insensitive' } } : {},
-        role ? { role: { nama: { contains: role, lte: 'insensitive' } } } : {},
+        q ? { username: { contains: q } } : {},
+        role ? { role: { name: { contains: role } } } : {},
         status ? { status: status } : {} // Directly filter by user status
       ]
     };
@@ -59,11 +59,12 @@ const users = await prisma.user.findMany({
     const transformedUsers = users.map(user => ({
       id: user.id,
       idKaryawan: user.karyawan_id, // Assuming karyawan_id maps to idKaryawan
-      nama: user.username || '', // Assuming username contains the desired name
+      nama: user.karyawan.nama || '', // Assuming username contains the desired name
       role: user.role?.name || '', // Assuming role has a nama field
       email: user.email,
-      username: `owner.${user.email.split('@')[0]}`, // Assuming username follows this pattern
-      status: user.status, // Directly use user status
+      // username: `owner.${user.email.split('@')[0]}`, // Assuming username follows this pattern
+      username: user.username, // Assuming username follows this pattern
+      status: user.status || 'aktif', // Use user status or default to 'aktif'
       kontak: user.karyawan.kontak, // Directly use user status
 
       // abilityRules: user.role?.hak_akses.map(hak_akses => ({
@@ -77,7 +78,7 @@ const users = await prisma.user.findMany({
     // Fetch total count for pagination
     const totalCount = await prisma.user.count({ where });
 
-    console.log('Total user count:', totalCount); // Log total count
+    console.log('Total user count:', role); // Log total count
 
     return {
       success: true,
@@ -185,6 +186,7 @@ const insertUserRepo = async (newUserData) => {
         password: hashedPassword, // Pastikan untuk meng-hash kata sandi
         karyawan_id: idKaryawan,
         role_id: role.id,
+        status: "aktif",
       },
     });
 

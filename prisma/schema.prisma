@@ -36,10 +36,12 @@ model karyawan {
   nama          String
   nik           String   @unique
   alamat        String
+  email         String?
   kontak        String
   tanggal_lahir DateTime
   jenis_kelamin String
   no_rekening   String
+  nama_akun     String?
   foto          String?   // Assuming 'foto' is a URL to the employee's photo
   posisi        String?
   status        String?
@@ -185,6 +187,8 @@ model supplier {
   alamat   String
   kontak   String
   no_rek   String
+  bank     String?
+  nama_akun     String?
   restok_bahan restok_bahan[] // Add this if you want to establish a relation to restok_bahan
   created_at DateTime @default(now()) // Created timestamp
   updated_at DateTime @default(now())      // Updated timestamp

@@ -62,7 +62,7 @@ const findBahan = async (q, kategori, page = 1, itemsPerPage = 10) => {
         kode: bahan.kode,
         nama: bahan.nama,
         kategori: bahan.kategori??null, // Assuming 'kategori' is a scalar field directly accessible
-        stok: totalStok,
+        stok: bahan.stok,
         satuan: bahan.satuan,
         hargaSatuan: averageHarga,
         harga: bahan.harga??null,
