@@ -219,7 +219,7 @@ const updateoutletRepo = async (id, updatedOutletData) => {
         nama,
         alamat,
         deskripsi: keterangan,
-        karyawan: {
+        pic: {
           connect: { id: idKaryawanPic },
         },
         no_telp: kontakPic
