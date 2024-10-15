@@ -33,6 +33,7 @@ const findGawangan = async (q, page = 1, itemsPerPage = 10) => {
     const reshapedData = gawanganData.map(gawangan => ({
       id: gawangan.id,
       idOutlet: gawangan.outlet_id,
+      outlet: gawangan.outlet.nama,
       kode: gawangan.kode,
       deskripsi: gawangan.deskripsi ?? null, // Or any other value based on your logic
     }));

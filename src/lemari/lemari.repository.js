@@ -101,7 +101,7 @@ const insertLemariRepo = async (newLemariData) => {
     const lemari = await prisma.lemari.create({
       data: {
         kode: kode || null, // Menggunakan nilai default jika kode kosong
-        alamat: alamat || null, // Menggunakan nilai default jika alamat kosong
+        alamat: " null", // Menggunakan nilai default jika alamat kosong
         kapasitas: kapasitas || null, // Menggunakan nilai default jika kapasitas kosong
         // stok: stok || 0, // Menggunakan nilai default 0 jika stok kosong
         // jumlah_barang: jumlah_barang || 0, // Menggunakan nilai default 0 jika jumlah_barang kosong

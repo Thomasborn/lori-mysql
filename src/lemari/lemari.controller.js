@@ -45,11 +45,9 @@ router.post("/", upload.none(), async (req, res) => {
     
   
      
-      res.send({
-        success : lemari.success,
-        message: lemari.message,
-        data:lemari.data,
-      });
+      res.send(
+        lemari
+      );
     } catch (error) {
       console.error('Error creating Lemari:', error);
       res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
