@@ -102,7 +102,7 @@ const insertLemariRepo = async (newLemariData) => {
       data: {
         kode: kode || null, // Menggunakan nilai default jika kode kosong
         alamat: " null", // Menggunakan nilai default jika alamat kosong
-        kapasitas: kapasitas || null, // Menggunakan nilai default jika kapasitas kosong
+        kapasitas: kapasitas ? parseInt(kapasitas, 10) : null,
         // stok: stok || 0, // Menggunakan nilai default 0 jika stok kosong
         // jumlah_barang: jumlah_barang || 0, // Menggunakan nilai default 0 jika jumlah_barang kosong
         outlet: {
@@ -129,6 +129,7 @@ const insertLemariRepo = async (newLemariData) => {
     return {
       success: false,
       message: 'Terjadi kesalahan saat menambahkan data rak.',
+      error:error
     };
   }
 };
