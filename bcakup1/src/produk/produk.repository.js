@@ -381,6 +381,16 @@ const insertDaftarProdukRepo = async (data) => {
     // If model_produk doesn't exist, insert a new one
     const insert_model = await insertModelProduk(data);
 
+    // Insert multiple produk_outlet records using createMany
+    const newProdukOutlets = await prisma.produk_outlet.createMany({
+      data: insert_model.createdVarian.map(variant => ({
+        produk_id: variant.createdVariant.id, // Replace with the actual product ID
+        outlet_id: 11,                        // Replace with the actual outlet ID if necessary
+        jumlah: data.varian.find(v => v.ukuran === variant.createdVariant.ukuran).stok, // Get the correct stock quantity based on ukuran
+      })),
+      skipDuplicates: true, // Optional: skips duplicates if any (based on unique constraints)
+    });
+    
     // Shape the response data to match the desired structure
     const responseData = {
       id: insert_model.model_produk.id,
@@ -396,10 +406,12 @@ const insertDaftarProdukRepo = async (data) => {
         stok: data.varian.find(v => v.ukuran === variant.createdVariant.ukuran).stok,
         bahan: variant.createdBahan.map(bahan => ({
           id: bahan.daftar_bahan_id,
-          jumlahPakai: bahan.jumlah
-        }))
-      }))
+          jumlahPakai: bahan.jumlah,
+        })),
+      })),
     };
+    
+       
 
     return {
       success: true,
