@@ -77,6 +77,7 @@ const findGawanganById = async (id) => {
   const shapedData = {
     id: gawangan.id,
     idOutlet: gawangan.outlet_id,
+    outlet: gawangan.outlet.nama,
     kode: gawangan.kode,
     deskripsi: gawangan.deskripsi ?? null,
   };
@@ -161,7 +162,7 @@ const insertDetailGawanganRepo = async (newgawanganData) => {
   return insertedDetailGawangan;
 }
 const updateGawanganRepo = async (id,updatedgawanganData) => {
-  const {  kode,deskripsi }=updatedgawanganData; 
+  const {  kode,deskripsi,idOutlet }=updatedgawanganData; 
         const existinggawangan = await prisma.gawangan.findUnique({
           where: { id: parseInt(id) },
         });
@@ -177,6 +178,7 @@ const updateGawanganRepo = async (id,updatedgawanganData) => {
           // Add validation and update fields as needed
           deskripsi,
           kode,
+          outlet_id:parseInt(idOutlet)
         
       },
       });
