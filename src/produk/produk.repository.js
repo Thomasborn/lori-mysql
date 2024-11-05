@@ -65,7 +65,7 @@ const findDaftarProduk = async ( q, kategori,idOutlet, page = 1, itemsPerPage = 
       outlet_id: idOutlet,
     };
 
-    // Adjust search based on `q` parameter for `nama` or `kode` fields in `model_produk`
+    // Search based on `q` parameter for `nama` or `kode` fields in `model_produk`
     if (q) {
       whereClause = {
         ...whereClause,
@@ -74,16 +74,16 @@ const findDaftarProduk = async ( q, kategori,idOutlet, page = 1, itemsPerPage = 
             {
               model_produk: {
                 nama: {
-                  contains: q,
-                  mode: 'insensitive',  // Correct the sensitivity setting
+                  contains: q.toString(), // Ensure `q` is a string
+                  mode: 'insensitive',  // Set case-insensitivity
                 },
               },
             },
             {
               model_produk: {
                 kode: {
-                  contains: q,
-                  mode: 'insensitive',  // Correct the sensitivity setting
+                  contains: q.toString(), // Ensure `q` is a string
+                  mode: 'insensitive',
                 },
               },
             },
@@ -92,7 +92,7 @@ const findDaftarProduk = async ( q, kategori,idOutlet, page = 1, itemsPerPage = 
       };
     }
 
-    // Adjust filter based on `kategori` parameter
+    // Filter based on `kategori` parameter
     if (kategori) {
       whereClause = {
         ...whereClause,
@@ -100,13 +100,12 @@ const findDaftarProduk = async ( q, kategori,idOutlet, page = 1, itemsPerPage = 
           ...whereClause.detail_model_produk,
           model_produk: {
             kategori: {
-              nama: kategori,
+              nama: kategori.toString(), // Ensure `kategori` is a string
             },
           },
         },
       };
     }
-
 
     const totalData = await prisma.produk_outlet.count({
       where: whereClause,
