@@ -75,7 +75,7 @@ const findDaftarProduk = async ( q, kategori,idOutlet, page = 1, itemsPerPage = 
               model_produk: {
                 nama: {
                   contains: q.toString(), // Ensure `q` is a string
-                  mode: 'insensitive',  // Set case-insensitivity
+                  lte: 'insensitive',  // Set case-insensitivity
                 },
               },
             },
@@ -83,7 +83,7 @@ const findDaftarProduk = async ( q, kategori,idOutlet, page = 1, itemsPerPage = 
               model_produk: {
                 kode: {
                   contains: q.toString(), // Ensure `q` is a string
-                  mode: 'insensitive',
+                  lte: 'insensitive',
                 },
               },
             },
@@ -110,7 +110,7 @@ const findDaftarProduk = async ( q, kategori,idOutlet, page = 1, itemsPerPage = 
     const totalData = await prisma.produk_outlet.count({
       where: whereClause,
     });
-
+console.log(whereClause);
     const totalPages = Math.ceil(totalData / itemsPerPage);
 
     const produkOutletList = await prisma.produk_outlet.findMany({
