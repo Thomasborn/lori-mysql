@@ -158,7 +158,7 @@ const updateLemariRepo = async (id, updatedLemariData) => {
       },
       data: {
         kode,
-        parseInt(kapasitas),
+        kapasitas,
         stok,
         // jumlah_barang,
         outlet: {
