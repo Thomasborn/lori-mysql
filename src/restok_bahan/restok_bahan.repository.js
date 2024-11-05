@@ -182,7 +182,7 @@ const insertRestokBahanRepo = async (newRestokBahanData) => {
           connect: { id: item.idBahan }
         },
         jumlah: item.jumlahBahan,
-        harga_satuan: item.hargaBahan,
+        harga_satuan: parseFloat(item.hargaBahan),
         status: "Pengiriman"
       }
     }));

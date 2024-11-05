@@ -191,7 +191,7 @@ const insertUserRepo = async (newUserData) => {
         password: hashedPassword, // Pastikan untuk meng-hash kata sandi
         karyawan_id: idKaryawan,
         role_id: role.id,
-        status: "aktif",
+        status: status,
       },
     });
     
