@@ -61,9 +61,15 @@ const findDetailModelProdukList = async (q = {}, page = 1, itemsPerPage = 10) =>
 };
 const findDaftarProduk = async ( q, kategori,idOutlet, page = 1, itemsPerPage = 10) => {
   try {
-    let whereClause = {
-      outlet_id: idOutlet??11,
-    };
+    let whereClause = {};
+
+    // Add `outlet_id` to the clause only if `idOutlet` is provided
+    if (idOutlet) {
+      whereClause = {
+        ...whereClause,
+        outlet_id: idOutlet,
+      };
+    }
 
     // Search based on `q` parameter for `nama` or `kode` fields in `model_produk`
     if (q) {
