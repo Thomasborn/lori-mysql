@@ -237,18 +237,18 @@ const updateuserRepo = async (userId, updatedUserData) => {
     }
 
     // Periksa apakah email sudah ada dan bukan milik pengguna yang sedang diperbarui
-    const existingUserWithEmail = await prisma.user.findFirst({
-      where: {
-        email: email,
-        id: {
-          not: parseInt(userId),
-        },
-      },
-    });
+    // const existingUserWithEmail = await prisma.user.findFirst({
+    //   where: {
+    //     email: email,
+    //     id: {
+    //       not: parseInt(userId),
+    //     },
+    //   },
+    // });
 
-    if (existingUserWithEmail) {
-      throw new Error(`Email ${email} sudah digunakan oleh pengguna lain`);
-    }
+    // if (existingUserWithEmail) {
+    //   throw new Error(`Email ${email} sudah digunakan oleh pengguna lain`);
+    // }
 
     // Perbarui pengguna
     const updatedUser = await prisma.user.update({
