@@ -59,10 +59,10 @@ const findDetailModelProdukList = async (q = {}, page = 1, itemsPerPage = 10) =>
     data: extractedData
   };
 };
-const findDaftarProduk = async ( q, kategori,outletId, page = 1, itemsPerPage = 10) => {
+const findDaftarProduk = async ( q, kategori,idOutlet, page = 1, itemsPerPage = 10) => {
   try {
     let whereClause = {
-      outlet_id: outletId,
+      outlet_id: idOutlet,
     };
 
     if (q) {
