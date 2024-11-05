@@ -132,42 +132,53 @@ const findDaftarProduk = async ( q, kategori,outletId, page = 1, itemsPerPage = 
       skip: (page - 1) * itemsPerPage,
       take: itemsPerPage,
     });
-
-    // if (produkOutletList.length === 0) {
-    //   return {
-    //     success: false,
-    //     message: "Tidak ada produk yang ditemukan untuk outlet yang ditentukan",
-    //   };
-    // }
-
-    const transformedDataList = produkOutletList.map(produkOutlet => {
-      const { detail_model_produk, outlet } = produkOutlet;
-      const { model_produk } = detail_model_produk;
     
-      const varian = {
+    // Check if the list is empty
+    if (produkOutletList.length === 0) {
+      return {
+        success: false,
+        message: "Tidak ada produk yang ditemukan untuk outlet yang ditentukan",
+      };
+    }
+    
+    // Group data by model_produk.id
+    const groupedData = produkOutletList.reduce((acc, produkOutlet) => {
+      const { detail_model_produk } = produkOutlet;
+      const { model_produk } = detail_model_produk;
+      
+      // Initialize the group if it doesn't exist
+      if (!acc[model_produk.id]) {
+        acc[model_produk.id] = {
+          id: model_produk.id,
+          nama: model_produk.nama,
+          kode: model_produk.kode,
+          kategori: model_produk.kategori.nama,
+          foto: model_produk.foto_produk.map(foto => foto.filepath),
+          stok: 0,
+          hargaJualMin: Infinity,
+          hargaJualMax: -Infinity,
+          varian: [],
+        };
+      }
+      
+      // Aggregate stock and calculate min/max prices
+      acc[model_produk.id].stok += produkOutlet.jumlah;
+      acc[model_produk.id].hargaJualMin = Math.min(acc[model_produk.id].hargaJualMin, detail_model_produk.harga_jual);
+      acc[model_produk.id].hargaJualMax = Math.max(acc[model_produk.id].hargaJualMax, detail_model_produk.harga_jual);
+      
+      // Add variant data
+      acc[model_produk.id].varian.push({
         ukuran: detail_model_produk.ukuran,
         harga: detail_model_produk.harga_jual,
         stok: produkOutlet.jumlah,
-      };
+      });
     
-      const stok = varian.stok;
-      const hargaJualMin = varian.harga;
-      const hargaJualMax = varian.harga;
+      return acc;
+    }, {});
     
-      return {
-        stok,
-        hargaJualMin,
-        hargaJualMax,
-        id: model_produk.id,
-        nama: model_produk.nama,
-        kode: model_produk.kode,
-        kategori: model_produk.kategori.nama,
-        foto: model_produk.foto_produk.map(foto => foto.filepath),
-        varian: [varian],
-      };
-    });
+    // Transform the grouped data into the desired output format
+    const transformedDataList = Object.values(groupedData);
     
-
     return {
       success: true,
       message: "Data produk berhasil diperoleh",
@@ -178,6 +189,7 @@ const findDaftarProduk = async ( q, kategori,outletId, page = 1, itemsPerPage = 
       page: page.toString(),
       data: transformedDataList,
     };
+    
   } catch (error) {
     return {
       success: false,
