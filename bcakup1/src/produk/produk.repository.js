@@ -409,12 +409,12 @@ const insertDaftarProdukRepo = async (data) => {
         })),
       })),
     };
-    
+    console.log(newProdukOutlets)
        
 
     return {
       success: true,
-      message: `Data produk berhasil ditambahkan dengan ID ${responseData.id}`,
+      message: `Data produk berhasil ditambahkan dengans ID ${responseData.id}`,
       data: responseData,newProdukOutlets
     };
   }
