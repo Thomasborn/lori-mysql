@@ -60,7 +60,7 @@ model karyawan {
 }
 model role {
   id           Int           @id @default(autoincrement())
-  nama         String?       @unique
+  name         String?       @unique
   abilityRules ability_rule[]
   users        user[]
 }

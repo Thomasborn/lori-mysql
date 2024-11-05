@@ -88,7 +88,7 @@ const findRestokBahanById = async (id) => {
           },
           role: {
             select: {
-              nama: true,
+              name: true,
       
             }
           }
