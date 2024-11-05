@@ -177,18 +177,24 @@ const insertUserRepo = async (newUserData) => {
     if (!role) {
       throw new Error(`Peran dengan nama ${roleName} tidak ditemukan`);
     }
-
+    const karyawan = await prisma.karyawan.findFirst({
+      where: {
+        id: idKaryawan,
+      },
+    });
+    
     // Buat pengguna baru
     const user = await prisma.user.create({
       data: {
         username,
-        email,
+        email: karyawan.email ?? email, // Use karyawan.email if it exists; otherwise, use email
         password: hashedPassword, // Pastikan untuk meng-hash kata sandi
         karyawan_id: idKaryawan,
         role_id: role.id,
         status: "aktif",
       },
     });
+    
 
     return {
       success: true,
