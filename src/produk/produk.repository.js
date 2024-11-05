@@ -65,48 +65,48 @@ const findDaftarProduk = async ( q, kategori,idOutlet, page = 1, itemsPerPage = 
       outlet_id: idOutlet,
     };
 
+    // Adjust search based on `q` parameter for `nama` or `kode` fields in `model_produk`
     if (q) {
       whereClause = {
         ...whereClause,
-        produk: {
-          detail_model_produk: {
-            OR: [
-              {
-                model_produk: {
-                  nama: {
-                    contains: q,
-                    lte: 'insensitive',
-                  },
+        detail_model_produk: {
+          OR: [
+            {
+              model_produk: {
+                nama: {
+                  contains: q,
+                  mode: 'insensitive',  // Correct the sensitivity setting
                 },
               },
-              {
-                model_produk: {
-                  kode: {
-                    contains: q,
-                    lte: 'insensitive',
-                  },
+            },
+            {
+              model_produk: {
+                kode: {
+                  contains: q,
+                  mode: 'insensitive',  // Correct the sensitivity setting
                 },
               },
-            ],
-          },
+            },
+          ],
         },
       };
     }
 
+    // Adjust filter based on `kategori` parameter
     if (kategori) {
       whereClause = {
         ...whereClause,
-        produk: {
-          detail_model_produk: {
-            model_produk: {
-              kategori: {
-                nama: kategori,
-              },
+        detail_model_produk: {
+          ...whereClause.detail_model_produk,
+          model_produk: {
+            kategori: {
+              nama: kategori,
             },
           },
         },
       };
     }
+
 
     const totalData = await prisma.produk_outlet.count({
       where: whereClause,
