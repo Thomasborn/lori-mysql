@@ -388,7 +388,6 @@ const insertDaftarProdukRepo = async (data) => {
         outlet_id: 11,                        // Replace with the actual outlet ID if necessary
         jumlah: data.varian.find(v => v.ukuran === variant.createdVariant.ukuran).stok, // Get the correct stock quantity based on ukuran
       })),
-      skipDuplicates: true, // Optional: skips duplicates if any (based on unique constraints)
     });
     
     // Shape the response data to match the desired structure
@@ -416,7 +415,7 @@ const insertDaftarProdukRepo = async (data) => {
     return {
       success: true,
       message: `Data produk berhasil ditambahkan dengan ID ${responseData.id}`,
-      data: responseData
+      data: responseData,newProdukOutlets
     };
   }
 };
