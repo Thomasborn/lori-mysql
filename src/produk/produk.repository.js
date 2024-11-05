@@ -73,7 +73,7 @@ const findDaftarProduk = async ( q, kategori,outletId, page = 1, itemsPerPage = 
             OR: [
               {
                 model_produk: {
-                  nama_produk: {
+                  nama: {
                     contains: q,
                     lte: 'insensitive',
                   },
@@ -159,7 +159,7 @@ const findDaftarProduk = async ( q, kategori,outletId, page = 1, itemsPerPage = 
         hargaJualMin,
         hargaJualMax,
         id: model_produk.id,
-        nama: model_produk.nama_produk,
+        nama: model_produk.nama,
         kode: model_produk.kode,
         kategori: model_produk.kategori.nama,
         foto: model_produk.foto_produk.map(foto => foto.filepath),
@@ -324,7 +324,7 @@ const findDaftarProdukByIdOld = async (productId) => {
       hargaJualMin,
       hargaJualMax,
       id: model_produk.id,
-      nama: model_produk.nama_produk,
+      nama: model_produk.nama,
       kode: model_produk.kode,
       kategori: model_produk.kategori.nama,
       foto: model_produk.foto_produk.map(foto => foto.filepath),
