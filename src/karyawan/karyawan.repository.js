@@ -85,7 +85,7 @@ const findkaryawanById = async (id) => {
       alamat: karyawan.alamat,
       noHp: karyawan.kontak, // Assuming 'kontak' maps to 'noHp' in your model
       tanggal_lahir: karyawan.tanggal_lahir,
-      noRekening: karyawan.no_rekening, // Assuming 'no_rekening' maps to 'noRekening' in your model
+      norek: karyawan.no_rekening, // Assuming 'no_rekening' maps to 'noRekening' in your model
       foto: karyawan.foto,
       email: karyawan.email,
       idAfiliasiOutlet: karyawan.outlet_id,
