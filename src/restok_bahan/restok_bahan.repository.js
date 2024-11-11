@@ -277,39 +277,53 @@ const updateRestokBahanRepo = async (id, updatedRestokBahanData) => {
   }
 };
 const deleteRestokBahanByIdRepo = async (id) => {
-  try {
-    const restokBahan = await prisma.restok_bahan.findUnique({
-      where: { id: parseInt(id) }
-    });
-
-    if (!restokBahan) {
-      return {
-        success: false,
-        message: `Pengadaan bahan dengan ID ${id} tidak ditemukan.`
-      };
-    }
-
-    if (restokBahan.tanggal_terima) {
-      // Jika tanggal_terima sudah ada, maka update stok di daftar_bahan
-      await prisma.daftar_bahan.update({
-        where: { id: restokBahan.daftar_bahan_id },
-        data: {
-          stok: {
-            decrement: restokBahan.jumlah
-          }
-        }
-      });
-    }
-
-    // Hapus restok_bahan
-    await prisma.restok_bahan.delete({
-      where: { id: parseInt(id) }
-    });
-
+  const parsedId = parseInt(id);
+  if (isNaN(parsedId)) {
     return {
-      success: true,
-      message: `Pengadaan bahan dengan ID ${id} berhasil dihapus.`
+      success: false,
+      message: 'ID tidak valid.'
     };
+  }
+
+  try {
+    // Start a transaction
+    const result = await prisma.$transaction(async (prisma) => {
+      // Step 1: Find the restok_bahan entry
+      const restokBahan = await prisma.restok_bahan.findUnique({
+        where: { id: parsedId }
+      });
+
+      if (!restokBahan) {
+        return {
+          success: false,
+          message: `Pengadaan bahan dengan ID ${id} tidak ditemukan.`
+        };
+      }
+
+      // Step 2: Update stok in daftar_bahan if tanggal_terima exists
+      if (restokBahan.tanggal_terima) {
+        await prisma.daftar_bahan.update({
+          where: { id: restokBahan.daftar_bahan_id },
+          data: {
+            stok: {
+              decrement: restokBahan.jumlah
+            }
+          }
+        });
+      }
+
+      // Step 3: Delete the restok_bahan record
+      await prisma.restok_bahan.delete({
+        where: { id: parsedId }
+      });
+
+      return {
+        success: true,
+        message: `Pengadaan bahan dengan ID ${id} berhasil dihapus.`
+      };
+    });
+
+    return result;
   } catch (error) {
     console.error('Error menghapus Pengadaan bahan:', error);
     return {
@@ -319,6 +333,7 @@ const deleteRestokBahanByIdRepo = async (id) => {
     };
   }
 };
+
 
 module.exports={
   findRestokBahan,

@@ -59,7 +59,7 @@ const findQcBahan = async (queryParams) => {
     tindakan: item.tindakan,
     status: item.status,
     catatan: item.catatan,
-    idPenggunaQc: item.user.id,
+    idPenggunaQcQc: item.user.id,
     namaPenggunaQc: item.user.nama,
   }));
 
@@ -111,7 +111,7 @@ const findQcBahan = async (queryParams) => {
     tindakan: qc_bahan.tindakan,
     status: qc_bahan.status,
     catatan: qc_bahan.catatan,
-    idPenggunaQc: qc_bahan.user.id,
+    idPenggunaQcQc: qc_bahan.user.id,
     namaPenggunaQc: qc_bahan.user.nama,
     rolePenggunaQc: qc_bahan.user.role.nama,
     kontakPenggunaQc: qc_bahan.user.karyawan.kontak,
@@ -135,7 +135,7 @@ const insertQcBahanRepo = async (newprodukData) => {
       tindakan,
       status,
       catatan,
-      idPengguna,
+      idPenggunaQc,
     } = newprodukData;
 
     // Fetch daftar_bahan information
@@ -148,11 +148,13 @@ const insertQcBahanRepo = async (newprodukData) => {
     if (!daftarBahan) {
       throw new Error(`Daftar bahan dengan ID ${idBahan} tidak ditemukan`);
     }
-
+    if (!idPenggunaQc) {
+      throw new Error('ID pengguna tidak valid.');
+    }
     // Fetch user information
     const user = await prisma.user.findUnique({
       where: {
-        id: idPengguna,
+        id: idPenggunaQc,
       },
       include: {
         karyawan: true,
@@ -161,7 +163,7 @@ const insertQcBahanRepo = async (newprodukData) => {
     });
 
     if (!user) {
-      throw new Error(`User dengan ID ${idPengguna} tidak ditemukan`);
+      throw new Error(`User dengan ID ${idPenggunaQc} tidak ditemukan`);
     }
 
     // Perform the insert operation using Prisma
@@ -174,7 +176,7 @@ const insertQcBahanRepo = async (newprodukData) => {
         },
         user: {
           connect: {
-            id: idPengguna,
+            id: idPenggunaQc,
           },
         },
         tindakan,
@@ -216,7 +218,7 @@ const insertQcBahanRepo = async (newprodukData) => {
         tindakan: createdQcBahan.tindakan,
         status: createdQcBahan.status,
         catatan: createdQcBahan.catatan,
-        idPengguna: createdQcBahan.user.id,
+        idPenggunaQc: createdQcBahan.user.id,
         namaPengguna: user.nama,
         rolePengguna: user.role.nama,
         kontakPengguna: user.karyawan.kontak,
@@ -299,7 +301,7 @@ const insertQcBahanRepo = async (newprodukData) => {
         tindakan: existingProduk.tindakan,
         status: updatedProduk.status,
         catatan: updatedProduk.catatan,
-        idPengguna: existingProduk.user.id,
+        idPenggunaQc: existingProduk.user.id,
         namaPengguna: existingProduk.user.nama,
         rolePengguna: existingProduk.user.role.nama,
         kontakPengguna: existingProduk.user.karyawan.kontak,
