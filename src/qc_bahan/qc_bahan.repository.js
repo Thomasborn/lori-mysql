@@ -181,7 +181,7 @@ const insertQcBahanRepo = async (newprodukData) => {
         },
         tindakan,
         jumlah:parseInt(jumlah),
-        catatan:catatan??null,
+        catatan:catatan??"-",
         status,
         // qc_produk_id: kodeBahan,
       },
@@ -198,7 +198,7 @@ const insertQcBahanRepo = async (newprodukData) => {
       },
       data: {
         stok: {
-          decrement: jumlah, // Kurangi stok berdasarkan jumlah QC bahan
+          decrement: parseInt(jumlah), // Kurangi stok berdasarkan jumlah QC bahan
         },
       },
     });
