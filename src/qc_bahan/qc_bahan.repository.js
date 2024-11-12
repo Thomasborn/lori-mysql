@@ -59,7 +59,7 @@ const findQcBahan = async (queryParams) => {
     tindakan: item.tindakan,
     status: item.status,
     catatan: item.catatan,
-    idPenggunaQcQc: item.user.id,
+    idPenggunaQc: item.user.id,
     namaPenggunaQc: item.user.nama,
   }));
 

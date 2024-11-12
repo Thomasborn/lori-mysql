@@ -31,7 +31,7 @@ const corsOptions = {
     'http://localhost.devl:5173',
     'https://omahit.online/',
   ], // Replace with your frontend URLs
-  methods: ['GET', 'POST', 'PUT', 'DELETE'], // Allow specific HTTP methods
+  methods: ['GET', 'POST', 'PUT','PATCH', 'DELETE'], // Allow specific HTTP methods
   allowedHeaders: [
     'X-Requested-With',
     'X-HTTP-Method-Override',
