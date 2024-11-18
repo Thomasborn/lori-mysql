@@ -47,7 +47,11 @@ const findDistribusi = async (filters) => {
       where,
       include: {
         Pic: true,
-        daftarProduk: true,
+        daftarProduk: {
+          include: {
+            model_produk: true, // Include nested relation to get namaProduk
+          },
+        },
         asalOutlet: true,
         tujuanOutlet: true,
       },
@@ -69,18 +73,18 @@ const findDistribusi = async (filters) => {
       page: currentPage,
       data: data.map(distribusi => ({
         id: distribusi.id,
-        tanggal: distribusi.tanggal.toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }), 
+        tanggal: distribusi.tanggal.toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }),
         idVarian: distribusi.produk_id,
-        namaProduk: distribusi.daftarProduk.namaProduk, // Adjust accordingly based on your schema
-        ukuranProduk: distribusi.ukuranProduk, // Adjust accordingly based on your schema
+        namaProduk: distribusi.daftarProduk?.model_produk?.nama || 'N/A', // Get nama from model_produk
+        ukuranProduk: distribusi.daftarProduk?.ukuran || 'N/A', // Get ukuran from daftarProduk
         jumlah: distribusi.jumlah,
         idAsalOutlet: distribusi.asal_outlet_id,
-        namaAsalOutlet: distribusi.asalOutlet.nama, // Adjust accordingly based on your schema
+        namaAsalOutlet: distribusi.asalOutlet?.nama || 'N/A', // Get nama from asalOutlet
         idTujuanOutlet: distribusi.tujuan_outlet_id,
-        namaTujuanOutlet: distribusi.tujuanOutlet.nama, // Adjust accordingly based on your schema
+        namaTujuanOutlet: distribusi.tujuanOutlet?.nama || 'N/A', // Get nama from tujuanOutlet
         catatan: distribusi.catatan,
         idPenggunaPic: distribusi.idPic,
-        namaPenggunaPic: distribusi.Pic.namaPenggunaPic, // Adjust accordingly based on your schema
+        namaPenggunaPic: distribusi.Pic?.namaPenggunaPic || 'N/A', // Get nama from Pic
       })),
     };
 
