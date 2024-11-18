@@ -11,7 +11,7 @@ const findRestokBahan = async (queryParams) => {
       bulanTerima && tahunTerima && { tanggal_terima: { gte: new Date(`${tahunTerima}-${bulanTerima}-01`), lt: new Date(`${tahunTerima}-${parseInt(bulanTerima)+1}-01`) } }
     ].filter(Boolean)
   };
-
+  console.log(whereCondition);
   if (status) {
     whereCondition.AND.push({ status });
   }

@@ -19,15 +19,23 @@ const findQcBahan = async (queryParams) => {
     filters.status = status;
   }
   if (bulanTemuan && tahunTemuan) {
+    const startTemuanDate = new Date(`${tahunTemuan}-${bulanTemuan}-01`);
+    const endTemuanDate = new Date(startTemuanDate);
+    endTemuanDate.setMonth(startTemuanDate.getMonth() + 1);
+
     filters.created_at = {
-      gte: new Date(`${tahunTemuan}-${bulanTemuan}-01`),
-      lt: new Date(`${tahunTemuan}-${parseInt(bulanTemuan) + 1}-01`)
+      gte: startTemuanDate,
+      lt: endTemuanDate
     };
   }
   if (bulanSelesai && tahunSelesai) {
+    const startSelesaiDate = new Date(`${tahunSelesai}-${bulanSelesai}-01`);
+    const endSelesaiDate = new Date(startSelesaiDate);
+    endSelesaiDate.setMonth(startSelesaiDate.getMonth() + 1);
+
     filters.updated_at = {
-      gte: new Date(`${tahunSelesai}-${bulanSelesai}-01`),
-      lt: new Date(`${tahunSelesai}-${parseInt(bulanSelesai) + 1}-01`)
+      gte: startSelesaiDate,
+      lt: endSelesaiDate
     };
   }
 
