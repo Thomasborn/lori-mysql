@@ -6,43 +6,43 @@ const findDistribusi = async (filters) => {
     // Prepare filter object
     const where = {};
 
-    // Filter by query q (if provided)
+    // Filter by search query `q` (if provided)
     if (q) {
       where.OR = [
-        { produk_id: { contains: q } }, // Example field to search
-        { catatan: { contains: q } } // Example field to search
+        { produk_id: { contains: q.toString() } }, // Convert to string if necessary
+        { catatan: { contains: q, mode: 'insensitive' } }
       ];
     }
 
-    // Filter by bulanDistribusi and tahunDistribusi (if provided)
+    // Filter by `bulanDistribusi` and `tahunDistribusi` using `created_at`
     if (bulanDistribusi && tahunDistribusi) {
-      where.AND = [
-        { bulanDistribusi: parseInt(bulanDistribusi) },
-        { tahunDistribusi: parseInt(tahunDistribusi) }
-      ];
+      where.created_at = {
+        gte: new Date(`${tahunDistribusi}-${bulanDistribusi}-01`),
+        lt: new Date(`${tahunDistribusi}-${parseInt(bulanDistribusi) + 1}-01`)
+      };
     }
 
-    // Filter by idAsalOutlet (if provided)
+    // Filter by `idAsalOutlet` (if provided)
     if (idAsalOutlet) {
       where.asal_outlet_id = parseInt(idAsalOutlet);
     }
 
-    // Filter by idTujuanOutlet (if provided)
+    // Filter by `idTujuanOutlet` (if provided)
     if (idTujuanOutlet) {
       where.tujuan_outlet_id = parseInt(idTujuanOutlet);
     }
 
-    // Default values for page and itemsPerPage
+    // Default values for pagination
     const currentPage = parseInt(page) || 1;
     const perPage = parseInt(itemsPerPage) || 10;
 
-    // Calculate skip based on currentPage and perPage
+    // Calculate the offset for pagination
     const skip = (currentPage - 1) * perPage;
 
-    // Fetch total data count based on provided filters
+    // Fetch total count of data matching the filters
     const totalData = await prisma.distribusi.count({ where });
 
-    // Fetch distribusi data with applied filters, pagination, and include related entities
+    // Fetch paginated data
     const data = await prisma.distribusi.findMany({
       where,
       include: {
