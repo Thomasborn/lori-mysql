@@ -9,8 +9,9 @@ const findDistribusi = async (filters) => {
     // Filter by search query `q` (if provided)
     if (q) {
       where.OR = [
-        { produk_id: { contains: q.toString() } }, // Convert to string if necessary
-        { catatan: { contains: q, mode: 'insensitive' } }
+        // { produk_id: { contains: q.toString() } }, // Convert to string if necessary
+        { catatan: { contains: q, mode: 'insensitive' } },
+        { daftarProduk: { model_produk: { nama: { contains: q, mode: 'insensitive' } } } } // Search by nama in model_produk
       ];
     }
 
