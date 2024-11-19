@@ -250,7 +250,8 @@ const insertModelProdukRepo = async (newModelProdukData) => {
           data: {
             ukuran,
             biaya_jahit: parseFloat(biayaJahit),
-            hpp,
+            // hpp,
+            hpp: parseFloat(hpp),
             harga_jual: parseFloat(hargaJual),
             // stok,
             model_produk: {
@@ -415,7 +416,7 @@ const updateModelProdukRepo = async (id, updateModelProdukData) => {
               where: { id: existingVariant.id },
               data: {
                 biaya_jahit: parseFloat(biayaJahit),
-                hpp,
+                hpp: parseFloat(hpp),
               harga_jual: parseFloat(hargaJual),
                 // stok,
               },
@@ -424,7 +425,7 @@ const updateModelProdukRepo = async (id, updateModelProdukData) => {
               data: {
                 ukuran,
                 biaya_jahit: parseFloat(biayaJahit),
-                hpp,
+                hpp: parseFloat(hpp),
                 harga_jual: parseFloat(hargaJual),
                 // stok,
                 model_produk: {
