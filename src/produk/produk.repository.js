@@ -137,37 +137,44 @@ const findDaftarProduk = async (q, kategori, idOutlet, page = 1, itemsPerPage = 
     const groupedData = produkOutletList.reduce((acc, produkOutlet) => {
       const { detail_model_produk } = produkOutlet;
       const { model_produk } = detail_model_produk;
-
-      // Initialize the group if it doesn't exist
+    
+      // Check if this `model_produk.id` already exists in the accumulator
       if (!acc[model_produk.id]) {
         acc[model_produk.id] = {
           id: model_produk.id,
           nama: model_produk.nama,
           kode: model_produk.kode,
-          kategori: model_produk.kategori.nama,
-          foto: model_produk.foto_produk.map(foto => foto.filepath),
+          kategori: model_produk.kategori?.nama || null, // Handle cases with no category
+          foto: model_produk.foto_produk.map((foto) => foto.filepath),
           stok: 0,
           hargaJualMin: Infinity,
           hargaJualMax: -Infinity,
           varian: [],
         };
       }
-
-      // Aggregate stock and calculate min/max prices
-      acc[model_produk.id].stok += produkOutlet.jumlah;
-      acc[model_produk.id].hargaJualMin = Math.min(acc[model_produk.id].hargaJualMin, detail_model_produk.harga_jual);
-      acc[model_produk.id].hargaJualMax = Math.max(acc[model_produk.id].hargaJualMax, detail_model_produk.harga_jual);
-
+    
+      // Update aggregated data
+      acc[model_produk.id].stok += produkOutlet.jumlah; // Add stock
+      acc[model_produk.id].hargaJualMin = Math.min(
+        acc[model_produk.id].hargaJualMin,
+        detail_model_produk.harga_jual
+      );
+      acc[model_produk.id].hargaJualMax = Math.max(
+        acc[model_produk.id].hargaJualMax,
+        detail_model_produk.harga_jual
+      );
+    
       // Add variant data
       acc[model_produk.id].varian.push({
         ukuran: detail_model_produk.ukuran,
         harga: detail_model_produk.harga_jual,
         stok: produkOutlet.jumlah,
       });
-
+    
       return acc;
     }, {});
-
+    
+    // Transform grouped data into an array
     const transformedDataList = Object.values(groupedData);
     console.log(JSON.stringify(whereClause, null, 2));
     const totalData = await prisma.produk_outlet.count({
@@ -176,7 +183,7 @@ const findDaftarProduk = async (q, kategori, idOutlet, page = 1, itemsPerPage = 
   
     // Pastikan totalData dan itemsPerPage memiliki nilai yang valid
   
-      totalPages = Math.ceil(totalData / itemsPerPage);
+      const totalPages = Math.ceil(totalData / itemsPerPage);
       
     return {
       success: true,
