@@ -74,30 +74,29 @@ const findDaftarProduk = async ( q, kategori,idOutlet, page = 1, itemsPerPage = 
 
     // Search based on `q` parameter for `nama` or `kode` fields in `model_produk`
    // Add search functionality for `q` on `nama` or `kode` in `model_produk`
-   if (q) {
-    whereClause = {
-      ...whereClause,
-      detail_model_produk: {
-        some: {
+    // Add filter for `q` on `nama` or `kode` in `model_produk`
+    if (q) {
+      whereClause = {
+        ...whereClause,
+        detail_model_produk: {
           model_produk: {
             OR: [
               {
                 nama: {
                   contains: q.toString(),
-                  lte: 'insensitive', // Ensure case-insensitive search
+                  mode: "insensitive", // Using "insensitive" for case-insensitivity
                 },
               },
               {
                 kode: {
                   contains: q.toString(),
-                  lte: 'insensitive',
+                  mode: "insensitive", // Using "insensitive" for case-insensitivity
                 },
               },
             ],
           },
         },
-      },
-    };
+      };
   }
 
   // Add filter for `kategori` if provided
