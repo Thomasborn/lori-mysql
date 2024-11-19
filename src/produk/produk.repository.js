@@ -61,6 +61,7 @@ const findDetailModelProdukList = async (q = {}, page = 1, itemsPerPage = 10) =>
 };
 const findDaftarProduk = async ( q, kategori,idOutlet, page = 1, itemsPerPage = 10) => {
   try {
+    filters = q, kategori,idOutlet;
     let whereClause = {};
 
     // Add `outlet_id` to the clause only if `idOutlet` is provided
@@ -193,7 +194,7 @@ console.log(whereClause);
       totalData,
       page: page.toString(),
       data: transformedDataList,
-      filter:whereClause
+      filter:filters
     };
     
   } catch (error) {
