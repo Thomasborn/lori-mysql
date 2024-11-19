@@ -64,7 +64,9 @@ const findDaftarProduk = async (q, kategori, idOutlet, page = 1, itemsPerPage = 
     const filters = { q, kategori, idOutlet };
     let whereClause = {};
 
-    if (idOutlet && !isNaN(idOutlet)) {
+    if (idOutlet && !isNaN(idOutlet) && idOutlet!=null) {
+      console.log("tesssssssssssssst")
+
       whereClause.outlet_id = idOutlet;
     }
 
@@ -95,6 +97,7 @@ const findDaftarProduk = async (q, kategori, idOutlet, page = 1, itemsPerPage = 
 
     // Filter by `kategori`
     if (kategori && kategori.trim() !== '') {
+      console.log("tesssssssssssssst")
       whereClause = {
         ...whereClause,
         detail_model_produk: {
