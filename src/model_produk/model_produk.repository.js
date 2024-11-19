@@ -249,9 +249,9 @@ const insertModelProdukRepo = async (newModelProdukData) => {
         const createdVariant = await prisma.detail_model_produk.create({
           data: {
             ukuran,
-            biaya_jahit: biayaJahit,
+            biaya_jahit: parseFloat(biayaJahit),
             hpp,
-            harga_jual: hargaJual,
+            harga_jual: parseFloat(hargaJual),
             // stok,
             model_produk: {
               connect: {
