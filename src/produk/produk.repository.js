@@ -139,12 +139,12 @@ console.log(whereClause);
     });
     
     // Check if the list is empty
-    if (produkOutletList.length === 0) {
-      return {
-        success: false,
-        message: "Tidak ada produk yang ditemukan untuk outlet yang ditentukan",
-      };
-    }
+    // if (produkOutletList.length === 0) {
+    //   return {
+    //     success: false,
+    //     message: "Tidak ada produk yang ditemukan untuk outlet yang ditentukan",
+    //   };
+    // }
     
     // Group data by model_produk.id
     const groupedData = produkOutletList.reduce((acc, produkOutlet) => {
