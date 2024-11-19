@@ -61,7 +61,7 @@ const findDetailModelProdukList = async (q = {}, page = 1, itemsPerPage = 10) =>
 };
 const findDaftarProduk = async (q, kategori, idOutlet, page = 1, itemsPerPage = 10) => {
   try {
-    filters = [q, kategori, idOutlet];
+    const filters = { q, kategori, idOutlet };
     let whereClause = {};
 
     // Add `outlet_id` to the clause only if `idOutlet` is provided
@@ -83,7 +83,7 @@ const findDaftarProduk = async (q, kategori, idOutlet, page = 1, itemsPerPage = 
               model_produk: {
                 nama: {
                   contains: lowercaseQ,
-                  lte: 'insensitive',
+                  mode: 'insensitive',
                 },
               },
             },
@@ -91,7 +91,7 @@ const findDaftarProduk = async (q, kategori, idOutlet, page = 1, itemsPerPage = 
               model_produk: {
                 kode: {
                   contains: lowercaseQ,
-                  lte: 'insensitive',
+                  mode: 'insensitive',
                 },
               },
             },
@@ -114,8 +114,15 @@ const findDaftarProduk = async (q, kategori, idOutlet, page = 1, itemsPerPage = 
         },
       };
     }
-   
 
+    // Count total data
+    const totalData = await prisma.produk_outlet.count({
+      where: whereClause,
+    });
+
+    const totalPages = Math.ceil(totalData / itemsPerPage);
+
+    // Fetch data
     const produkOutletList = await prisma.produk_outlet.findMany({
       where: whereClause,
       include: {
@@ -131,13 +138,15 @@ const findDaftarProduk = async (q, kategori, idOutlet, page = 1, itemsPerPage = 
         },
         outlet: true,
       },
+      skip: (page - 1) * itemsPerPage,
+      take: itemsPerPage,
     });
 
-    // Group and aggregate data in JavaScript
+    // Group data by `model_produk.id`
     const groupedData = produkOutletList.reduce((acc, produkOutlet) => {
       const { detail_model_produk } = produkOutlet;
       const { model_produk } = detail_model_produk;
-    
+
       // Check if this `model_produk.id` already exists in the accumulator
       if (!acc[model_produk.id]) {
         acc[model_produk.id] = {
@@ -152,7 +161,7 @@ const findDaftarProduk = async (q, kategori, idOutlet, page = 1, itemsPerPage = 
           varian: [],
         };
       }
-    
+
       // Update aggregated data
       acc[model_produk.id].stok += produkOutlet.jumlah; // Add stock
       acc[model_produk.id].hargaJualMin = Math.min(
@@ -163,38 +172,30 @@ const findDaftarProduk = async (q, kategori, idOutlet, page = 1, itemsPerPage = 
         acc[model_produk.id].hargaJualMax,
         detail_model_produk.harga_jual
       );
-    
+
       // Add variant data
       acc[model_produk.id].varian.push({
         ukuran: detail_model_produk.ukuran,
         harga: detail_model_produk.harga_jual,
         stok: produkOutlet.jumlah,
       });
-    
+
       return acc;
     }, {});
-    
+
     // Transform grouped data into an array
     const transformedDataList = Object.values(groupedData);
-    console.log(JSON.stringify(whereClause, null, 2));
-    const totalData = await prisma.produk_outlet.count({
-      where: whereClause,
-    });
-  
-    // Pastikan totalData dan itemsPerPage memiliki nilai yang valid
-  
-      const totalPages = Math.ceil(totalData / itemsPerPage);
-      
+
     return {
       success: true,
       message: "Data produk berhasil diperoleh",
       dataTitle: "Produk",
       itemsPerPage,
       totalPages,
-      totalData: transformedDataList.length,
+      totalData,
       page: page.toString(),
       data: transformedDataList,
-      filter: filters,
+      filters,
     };
   } catch (error) {
     return {
@@ -204,6 +205,7 @@ const findDaftarProduk = async (q, kategori, idOutlet, page = 1, itemsPerPage = 
     };
   }
 };
+
 
 
 const findDaftarProdukById = async (productId) => {
