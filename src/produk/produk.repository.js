@@ -61,61 +61,62 @@ const findDetailModelProdukList = async (q = {}, page = 1, itemsPerPage = 10) =>
 };
 const findDaftarProduk = async (q, kategori, idOutlet, page = 1, itemsPerPage = 10) => {
   try {
-    filters = [q, kategori, idOutlet];
+    const filters = { q, kategori, idOutlet };
     let whereClause = {};
 
-    // Add `outlet_id` to the clause only if `idOutlet` is provided
+    // Add `outlet_id` to the clause if `idOutlet` is provided
     if (idOutlet) {
-      whereClause = {
-        ...whereClause,
-        outlet_id: idOutlet,
-      };
+      whereClause.outlet_id = idOutlet;
     }
 
-    // Search based on `q` parameter for `nama` or `kode` fields in `model_produk`
+    // Search for `nama` or `kode` fields in `model_produk`
     if (q) {
-      const lowercaseQ = q.toString().toLowerCase(); // Convert query to lowercase
-      whereClause = {
-        ...whereClause,
-        detail_model_produk: {
-          OR: [
-            {
-              model_produk: {
-                nama: {
-                  contains: lowercaseQ,
-                  lte: 'insensitive',
-                },
+      const lowercaseQ = q.toString().toLowerCase();
+      whereClause.detail_model_produk = {
+        ...whereClause.detail_model_produk,
+        OR: [
+          {
+            model_produk: {
+              nama: {
+                contains: lowercaseQ,
+                lte: 'insensitive',
               },
             },
-            {
-              model_produk: {
-                kode: {
-                  contains: lowercaseQ,
-                  lte: 'insensitive',
-                },
+          },
+          {
+            model_produk: {
+              kode: {
+                contains: lowercaseQ,
+                lte: 'insensitive',
               },
             },
-          ],
-        },
+          },
+        ],
       };
     }
 
-    // Filter based on `kategori` parameter
+    // Filter based on `kategori`
     if (kategori) {
-      whereClause = {
-        ...whereClause,
-        detail_model_produk: {
-          ...whereClause.detail_model_produk,
-          model_produk: {
-            kategori: {
-              nama: kategori.toString(), // Ensure `kategori` is a string
-            },
+      whereClause.detail_model_produk = {
+        ...whereClause.detail_model_produk,
+        model_produk: {
+          ...whereClause.detail_model_produk?.model_produk,
+          kategori: {
+            nama: kategori.toString(),
           },
         },
       };
     }
 
-    const groupedData = await prisma.produk_outlet.findMany({
+    // Fetch total data count for pagination
+    const totalData = await prisma.produk_outlet.count({
+      where: whereClause,
+    });
+
+    const totalPages = Math.ceil(totalData / itemsPerPage);
+
+    // Fetch paginated data
+    const produkOutletList = await prisma.produk_outlet.findMany({
       where: whereClause,
       include: {
         detail_model_produk: {
@@ -130,39 +131,50 @@ const findDaftarProduk = async (q, kategori, idOutlet, page = 1, itemsPerPage = 
         },
         outlet: true,
       },
-      groupBy: {
-        model_produk: {
-          id: true,
-        },
-      },
-      aggregate: {
-        _count: {
-          count: true,
-        },
-        hargaJual_min: {
-          min: {
-            field: 'detail_model_produk.harga_jual',
-          },
-        },
-        hargaJual_max: {
-          max: {
-            field: 'detail_model_produk.harga_jual',
-          },
-        },
-      },
+      skip: (page - 1) * itemsPerPage,
+      take: itemsPerPage,
     });
 
-    const transformedDataList = groupedData.map(produk_outlet => ({
-      id: produk_outlet.model_produk.id,
-      nama: produk_outlet.model_produk.nama,
-      kode: produk_outlet.model_produk.kode,
-      kategori: produk_outlet.model_produk.kategori.nama,
-      foto: produk_outlet.model_produk.foto_produk.map(foto => foto.filepath),
-      stok: produk_outlet.hargaJual_count,
-      hargaJualMin: produk_outlet.hargaJual_min,
-      hargaJualMax: produk_outlet.hargaJual_max,
-      varian: [], // Can be populated later if needed
-    }));
+    // Group data by `model_produk.id`
+    const groupedData = produkOutletList.reduce((acc, produkOutlet) => {
+      const { detail_model_produk } = produkOutlet;
+      const { model_produk } = detail_model_produk;
+
+      if (!acc[model_produk.id]) {
+        acc[model_produk.id] = {
+          id: model_produk.id,
+          nama: model_produk.nama,
+          kode: model_produk.kode,
+          kategori: model_produk.kategori.nama,
+          foto: model_produk.foto_produk.map((foto) => foto.filepath),
+          stok: 0,
+          hargaJualMin: Infinity,
+          hargaJualMax: -Infinity,
+          varian: [],
+        };
+      }
+
+      acc[model_produk.id].stok += produkOutlet.jumlah;
+      acc[model_produk.id].hargaJualMin = Math.min(
+        acc[model_produk.id].hargaJualMin,
+        detail_model_produk.harga_jual || Infinity
+      );
+      acc[model_produk.id].hargaJualMax = Math.max(
+        acc[model_produk.id].hargaJualMax,
+        detail_model_produk.harga_jual || -Infinity
+      );
+
+      acc[model_produk.id].varian.push({
+        ukuran: detail_model_produk.ukuran,
+        harga: detail_model_produk.harga_jual,
+        stok: produkOutlet.jumlah,
+      });
+
+      return acc;
+    }, {});
+
+    // Transform grouped data into an array
+    const transformedDataList = Object.values(groupedData);
 
     return {
       success: true,
@@ -170,12 +182,13 @@ const findDaftarProduk = async (q, kategori, idOutlet, page = 1, itemsPerPage = 
       dataTitle: "Produk",
       itemsPerPage,
       totalPages,
-      totalData: groupedData.length,
+      totalData,
       page: page.toString(),
       data: transformedDataList,
-      filter: filters,
+      filters,
     };
   } catch (error) {
+    console.error("Error in findDaftarProduk:", error); // Detailed logging for debugging
     return {
       success: false,
       message: "Terjadi kesalahan saat mengambil data produk",
@@ -183,6 +196,7 @@ const findDaftarProduk = async (q, kategori, idOutlet, page = 1, itemsPerPage = 
     };
   }
 };
+
 
 const findDaftarProdukById = async (productId) => {
   const product = await prisma.model_produk.findUnique({
