@@ -83,7 +83,7 @@ const findDaftarProduk = async (q, kategori, idOutlet, page = 1, itemsPerPage = 
               model_produk: {
                 nama: {
                   contains: lowercaseQ,
-                  mode: 'insensitive',
+                  lte: 'insensitive',
                 },
               },
             },
@@ -91,7 +91,7 @@ const findDaftarProduk = async (q, kategori, idOutlet, page = 1, itemsPerPage = 
               model_produk: {
                 kode: {
                   contains: lowercaseQ,
-                  mode: 'insensitive',
+                  lte: 'insensitive',
                 },
               },
             },
