@@ -59,14 +59,14 @@ const findDetailModelProdukList = async (q = {}, page = 1, itemsPerPage = 10) =>
     data: extractedData
   };
 };
-const findDaftarProduk = async ( q, kategori,idOutlet, page = 1, itemsPerPage = 10) => {
+const findDaftarProduk = async (q, kategori, idOutlet, page = 1, itemsPerPage = 10) => {
   try {
     let whereClause = '';
     let params = [];
 
     // Handle `idOutlet` if provided
     if (idOutlet) {
-      whereClause += ' AND p.outlet_id = ?';
+      whereClause += ' AND po.outlet_id = ?';
       params.push(idOutlet);
     }
 
@@ -99,7 +99,6 @@ const findDaftarProduk = async ( q, kategori,idOutlet, page = 1, itemsPerPage = 
       JOIN model_produk mp ON dmp.model_produk_id = mp.id
       WHERE 1=1 ${whereClause}
     `;
-
     const totalDataResult = await prisma.$queryRaw(totalDataQuery, ...params);
     const totalData = totalDataResult[0].total;
     const totalPages = Math.ceil(totalData / itemsPerPage);
@@ -117,14 +116,6 @@ const findDaftarProduk = async ( q, kategori,idOutlet, page = 1, itemsPerPage = 
     params.push(itemsPerPage, (page - 1) * itemsPerPage);
 
     const produkOutletList = await prisma.$queryRaw(produkOutletQuery, ...params);
-    
-    // Check if the list is empty
-    // if (produkOutletList.length === 0) {
-    //   return {
-    //     success: false,
-    //     message: "Tidak ada produk yang ditemukan untuk outlet yang ditentukan",
-    //   };
-    // }
     
     // Group data by model_produk.id
     const groupedData = produkOutletList.reduce((acc, produkOutlet) => {
@@ -160,7 +151,7 @@ const findDaftarProduk = async ( q, kategori,idOutlet, page = 1, itemsPerPage = 
     
       return acc;
     }, {});
-    
+
     // Transform the grouped data into the desired output format
     const transformedDataList = Object.values(groupedData);
     
@@ -173,7 +164,11 @@ const findDaftarProduk = async ( q, kategori,idOutlet, page = 1, itemsPerPage = 
       totalData,
       page: page.toString(),
       data: transformedDataList,
-      filter:filters
+      filter: {
+        q,
+        kategori,
+        idOutlet,
+      },
     };
     
   } catch (error) {
@@ -184,6 +179,7 @@ const findDaftarProduk = async ( q, kategori,idOutlet, page = 1, itemsPerPage = 
     };
   }
 };
+
 
 const findDaftarProdukById = async (productId) => {
   const product = await prisma.model_produk.findUnique({
