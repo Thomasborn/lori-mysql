@@ -62,54 +62,37 @@ const findDetailModelProdukList = async (q = {}, page = 1, itemsPerPage = 10) =>
 const findDaftarProduk = async (q, kategori, idOutlet, page = 1, itemsPerPage = 10) => {
   try {
     const filters = { q, kategori, idOutlet };
-    let whereClause = {};
+    let whereClause = {
+      ...(idOutlet && { outlet_id: idOutlet }),
+    };
 
-    // Add `outlet_id` to the clause only if `idOutlet` is provided
-    if (idOutlet) {
-      whereClause = {
-        ...whereClause,
-        outlet_id: idOutlet,
-      };
-    }
-
-    // Search based on `q` parameter for `nama` or `kode` fields in `model_produk`
+    // Search based on `q` for `nama` or `kode` in `model_produk`
     if (q) {
-      const lowercaseQ = q.toString().toLowerCase(); // Convert query to lowercase
+      const lowercaseQ = q.toString().toLowerCase();
       whereClause = {
         ...whereClause,
         detail_model_produk: {
-          OR: [
-            {
-              model_produk: {
-                nama: {
-                  contains: lowercaseQ,
-                  lte: 'insensitive',
-                },
-              },
-            },
-            {
-              model_produk: {
-                kode: {
-                  contains: lowercaseQ,
-                  lte: 'insensitive',
-                },
-              },
-            },
-          ],
+          ...whereClause.detail_model_produk,
+          model_produk: {
+            ...(whereClause.detail_model_produk?.model_produk || {}),
+            OR: [
+              { nama: { contains: lowercaseQ, lte: 'insensitive' } },
+              { kode: { contains: lowercaseQ, lte: 'insensitive' } },
+            ],
+          },
         },
       };
     }
 
-    // Filter based on `kategori` parameter
+    // Filter by `kategori`
     if (kategori) {
       whereClause = {
         ...whereClause,
         detail_model_produk: {
           ...whereClause.detail_model_produk,
           model_produk: {
-            kategori: {
-              nama: kategori.toString(), // Ensure `kategori` is a string
-            },
+            ...(whereClause.detail_model_produk?.model_produk || {}),
+            kategori: { nama: kategori.toString() },
           },
         },
       };
@@ -147,13 +130,12 @@ const findDaftarProduk = async (q, kategori, idOutlet, page = 1, itemsPerPage = 
       const { detail_model_produk } = produkOutlet;
       const { model_produk } = detail_model_produk;
 
-      // Check if this `model_produk.id` already exists in the accumulator
       if (!acc[model_produk.id]) {
         acc[model_produk.id] = {
           id: model_produk.id,
           nama: model_produk.nama,
           kode: model_produk.kode,
-          kategori: model_produk.kategori?.nama || null, // Handle cases with no category
+          kategori: model_produk.kategori?.nama || null,
           foto: model_produk.foto_produk.map((foto) => foto.filepath),
           stok: 0,
           hargaJualMin: Infinity,
@@ -162,8 +144,7 @@ const findDaftarProduk = async (q, kategori, idOutlet, page = 1, itemsPerPage = 
         };
       }
 
-      // Update aggregated data
-      acc[model_produk.id].stok += produkOutlet.jumlah; // Add stock
+      acc[model_produk.id].stok += produkOutlet.jumlah;
       acc[model_produk.id].hargaJualMin = Math.min(
         acc[model_produk.id].hargaJualMin,
         detail_model_produk.harga_jual
@@ -173,7 +154,6 @@ const findDaftarProduk = async (q, kategori, idOutlet, page = 1, itemsPerPage = 
         detail_model_produk.harga_jual
       );
 
-      // Add variant data
       acc[model_produk.id].varian.push({
         ukuran: detail_model_produk.ukuran,
         harga: detail_model_produk.harga_jual,
@@ -205,6 +185,7 @@ const findDaftarProduk = async (q, kategori, idOutlet, page = 1, itemsPerPage = 
     };
   }
 };
+
 
 
 
