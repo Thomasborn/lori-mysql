@@ -114,6 +114,7 @@ const findDaftarProduk = async (q, kategori, idOutlet, page = 1, itemsPerPage = 
         },
       };
     }
+   
 
     const produkOutletList = await prisma.produk_outlet.findMany({
       where: whereClause,
@@ -169,7 +170,14 @@ const findDaftarProduk = async (q, kategori, idOutlet, page = 1, itemsPerPage = 
 
     const transformedDataList = Object.values(groupedData);
     console.log(JSON.stringify(whereClause, null, 2));
-
+    const totalData = await prisma.produk_outlet.count({
+      where: whereClause,
+    });
+  
+    // Pastikan totalData dan itemsPerPage memiliki nilai yang valid
+  
+      totalPages = Math.ceil(totalData / itemsPerPage);
+      
     return {
       success: true,
       message: "Data produk berhasil diperoleh",
