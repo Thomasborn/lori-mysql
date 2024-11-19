@@ -115,7 +115,7 @@ const findDaftarProduk = async (q, kategori, idOutlet, page = 1, itemsPerPage = 
       };
     }
 
-    const groupedData = await prisma.produkOutlet.findMany({
+    const groupedData = await prisma.produk_outlet.findMany({
       where: whereClause,
       include: {
         detail_model_produk: {
@@ -152,15 +152,15 @@ const findDaftarProduk = async (q, kategori, idOutlet, page = 1, itemsPerPage = 
       },
     });
 
-    const transformedDataList = groupedData.map(produkOutlet => ({
-      id: produkOutlet.model_produk.id,
-      nama: produkOutlet.model_produk.nama,
-      kode: produkOutlet.model_produk.kode,
-      kategori: produkOutlet.model_produk.kategori.nama,
-      foto: produkOutlet.model_produk.foto_produk.map(foto => foto.filepath),
-      stok: produkOutlet.hargaJual_count,
-      hargaJualMin: produkOutlet.hargaJual_min,
-      hargaJualMax: produkOutlet.hargaJual_max,
+    const transformedDataList = groupedData.map(produk_outlet => ({
+      id: produk_outlet.model_produk.id,
+      nama: produk_outlet.model_produk.nama,
+      kode: produk_outlet.model_produk.kode,
+      kategori: produk_outlet.model_produk.kategori.nama,
+      foto: produk_outlet.model_produk.foto_produk.map(foto => foto.filepath),
+      stok: produk_outlet.hargaJual_count,
+      hargaJualMin: produk_outlet.hargaJual_min,
+      hargaJualMax: produk_outlet.hargaJual_max,
       varian: [], // Can be populated later if needed
     }));
 
