@@ -61,100 +61,111 @@ const findDetailModelProdukList = async (q = {}, page = 1, itemsPerPage = 10) =>
 };
 const findDaftarProduk = async (q, kategori, idOutlet, page = 1, itemsPerPage = 10) => {
   try {
-    let whereClause = '';
-    let params = [];
+    const filters = { q, kategori, idOutlet };
+    let whereClause = {
+      ...(idOutlet && { outlet_id: idOutlet }),
+    };
 
-    // Handle `idOutlet` if provided
-    if (idOutlet) {
-      whereClause += ' AND po.outlet_id = ?';
-      params.push(idOutlet);
-    }
-
-    // Handle search query for `q`
+    // Search based on `q` for `nama` or `kode` in `model_produk`
     if (q) {
-      whereClause += `
-        AND (
-          LOWER(mp.nama) LIKE LOWER(?) OR
-          LOWER(mp.kode) LIKE LOWER(?)
-        )
-      `;
-      params.push(`%${q}%`, `%${q}%`);
+      const lowercaseQ = q.toString().toLowerCase();
+      whereClause = {
+        ...whereClause,
+        detail_model_produk: {
+          ...whereClause.detail_model_produk,
+          model_produk: {
+            ...(whereClause.detail_model_produk?.model_produk || {}),
+            OR: [
+              { nama: { contains: lowercaseQ, mode: 'insensitive' } },
+              { kode: { contains: lowercaseQ, mode: 'insensitive' } },
+            ],
+          },
+        },
+      };
     }
 
-    // Handle category filter `kategori` if provided
+    // Filter by `kategori`
     if (kategori) {
-      whereClause += `
-        AND mp.kategori_id = (
-          SELECT id FROM kategori_produk WHERE nama = ?
-        )
-      `;
-      params.push(kategori);
+      whereClause = {
+        ...whereClause,
+        detail_model_produk: {
+          ...whereClause.detail_model_produk,
+          model_produk: {
+            ...(whereClause.detail_model_produk?.model_produk || {}),
+            kategori: { nama: kategori.toString() },
+          },
+        },
+      };
     }
 
-    // Count total matching records
-    const totalDataQuery = `
-      SELECT COUNT(*) AS total
-      FROM produk_outlet po
-      JOIN detail_model_produk dmp ON po.produk_id = dmp.id
-      JOIN model_produk mp ON dmp.model_produk_id = mp.id
-      WHERE 1=1 ${whereClause}
-    `;
-    const totalDataResult = await prisma.$queryRaw(totalDataQuery, ...params);
-    const totalData = totalDataResult[0].total;
+    // Count total data
+    const totalData = await prisma.produk_outlet.count({
+      where: whereClause,
+    });
+
     const totalPages = Math.ceil(totalData / itemsPerPage);
 
-    // Fetch paginated results
-    const produkOutletQuery = `
-      SELECT po.*, mp.*, dmp.*, o.*
-      FROM produk_outlet po
-      JOIN detail_model_produk dmp ON po.produk_id = dmp.id
-      JOIN model_produk mp ON dmp.model_produk_id = mp.id
-      JOIN outlet o ON po.outlet_id = o.id
-      WHERE 1=1 ${whereClause}
-      LIMIT ? OFFSET ?
-    `;
-    params.push(itemsPerPage, (page - 1) * itemsPerPage);
+    // Fetch data
+    const produkOutletList = await prisma.produk_outlet.findMany({
+      where: whereClause,
+      include: {
+        detail_model_produk: {
+          include: {
+            model_produk: {
+              include: {
+                kategori: true,
+                foto_produk: true,
+              },
+            },
+          },
+        },
+        outlet: true,
+      },
+      skip: (page - 1) * itemsPerPage,
+      take: itemsPerPage,
+    });
 
-    const produkOutletList = await prisma.$queryRaw(produkOutletQuery, ...params);
-    
-    // Group data by model_produk.id
+    // Group data by `model_produk.id`
     const groupedData = produkOutletList.reduce((acc, produkOutlet) => {
       const { detail_model_produk } = produkOutlet;
       const { model_produk } = detail_model_produk;
-      
-      // Initialize the group if it doesn't exist
+
       if (!acc[model_produk.id]) {
         acc[model_produk.id] = {
           id: model_produk.id,
           nama: model_produk.nama,
           kode: model_produk.kode,
-          kategori: model_produk.kategori.nama,
-          foto: model_produk.foto_produk.map(foto => foto.filepath),
+          kategori: model_produk.kategori?.nama || null,
+          foto: model_produk.foto_produk.map((foto) => foto.filepath),
           stok: 0,
           hargaJualMin: Infinity,
           hargaJualMax: -Infinity,
           varian: [],
         };
       }
-      
-      // Aggregate stock and calculate min/max prices
+
       acc[model_produk.id].stok += produkOutlet.jumlah;
-      acc[model_produk.id].hargaJualMin = Math.min(acc[model_produk.id].hargaJualMin, detail_model_produk.harga_jual);
-      acc[model_produk.id].hargaJualMax = Math.max(acc[model_produk.id].hargaJualMax, detail_model_produk.harga_jual);
-      
-      // Add variant data
+      acc[model_produk.id].hargaJualMin = Math.min(
+        acc[model_produk.id].hargaJualMin,
+        detail_model_produk.harga_jual
+      );
+      acc[model_produk.id].hargaJualMax = Math.max(
+        acc[model_produk.id].hargaJualMax,
+        detail_model_produk.harga_jual
+      );
+
       acc[model_produk.id].varian.push({
         ukuran: detail_model_produk.ukuran,
         harga: detail_model_produk.harga_jual,
         stok: produkOutlet.jumlah,
       });
-    
+
       return acc;
     }, {});
 
-    // Transform the grouped data into the desired output format
+    // Transform grouped data into an array
     const transformedDataList = Object.values(groupedData);
-    
+
     return {
       success: true,
       message: "Data produk berhasil diperoleh",
@@ -164,13 +175,8 @@ const findDaftarProduk = async (q, kategori, idOutlet, page = 1, itemsPerPage = 
       totalData,
       page: page.toString(),
       data: transformedDataList,
-      filter: {
-        q,
-        kategori,
-        idOutlet,
-      },
+      filters,
     };
-    
   } catch (error) {
     return {
       success: false,
