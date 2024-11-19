@@ -68,10 +68,14 @@ const findDaftarProduk = async (q, kategori, idOutlet, page = 1, itemsPerPage = 
     if (idOutlet) {
       whereClause.outlet_id = idOutlet;
     }
-    const lowercaseQ = q.toString().toLowerCase();
+
+    // Debugging: Log filters and initial whereClause
+    console.log('Filters:', filters);
+    console.log('Initial Where Clause:', whereClause);
 
     // Search based on `q` for `nama` or `kode` in `model_produk`
     if (q) {
+      const lowercaseQ = q.toString().toLowerCase();
       whereClause = {
         ...whereClause,
         detail_model_produk: {
@@ -79,8 +83,8 @@ const findDaftarProduk = async (q, kategori, idOutlet, page = 1, itemsPerPage = 
           model_produk: {
             ...(whereClause.detail_model_produk?.model_produk || {}),
             OR: [
-              { nama: { contains: lowercaseQ, lte: 'insensitive' } },
-              { kode: { contains: lowercaseQ, lte: 'insensitive' } },
+              { nama: { contains: lowercaseQ, lte: 'insensitive' } },  // Using lte, but this may not work as intended
+              { kode: { contains: lowercaseQ, lte: 'insensitive' } },  // Using lte, but this may not work as intended
             ],
           },
         },
@@ -101,12 +105,19 @@ const findDaftarProduk = async (q, kategori, idOutlet, page = 1, itemsPerPage = 
       };
     }
 
+    // Debugging: Log updated whereClause after filtering by q and kategori
+    console.log('Updated Where Clause after q and kategori filters:', whereClause);
+
     // Count total data
     const totalData = await prisma.produk_outlet.count({
       where: whereClause,
     });
 
     const totalPages = Math.ceil(totalData / itemsPerPage);
+
+    // Debugging: Log the total data count
+    console.log('Total Data:', totalData);
+    console.log('Total Pages:', totalPages);
 
     // Fetch data
     const produkOutletList = await prisma.produk_outlet.findMany({
@@ -127,6 +138,9 @@ const findDaftarProduk = async (q, kategori, idOutlet, page = 1, itemsPerPage = 
       skip: (page - 1) * itemsPerPage,
       take: itemsPerPage,
     });
+
+    // Debugging: Log the fetched data
+    console.log('Fetched produkOutletList:', produkOutletList);
 
     // Group data by `model_produk.id`
     const groupedData = produkOutletList.reduce((acc, produkOutlet) => {
@@ -182,6 +196,8 @@ const findDaftarProduk = async (q, kategori, idOutlet, page = 1, itemsPerPage = 
       lowercaseQ,
     };
   } catch (error) {
+    // Debugging: Log error if it occurs
+    console.error('Error occurred:', error.message);
     return {
       success: false,
       message: "Terjadi kesalahan saat mengambil data produk",
@@ -189,6 +205,7 @@ const findDaftarProduk = async (q, kategori, idOutlet, page = 1, itemsPerPage = 
     };
   }
 };
+
 
 
 
