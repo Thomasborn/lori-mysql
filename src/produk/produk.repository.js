@@ -124,6 +124,19 @@ const findDaftarProduk = async (q, kategori, idOutlet, page = 1, itemsPerPage = 
     // Count total data
     const totalData = await prisma.produk_outlet.count({
       where: whereClause,
+      include: {
+        detail_model_produk: {
+          include: {
+            model_produk: {
+              include: {
+                kategori: true,
+                foto_produk: true,
+              },
+            },
+          },
+        },
+        outlet: true,
+      },
     });
 
     const totalPages = Math.ceil(totalData / itemsPerPage);
