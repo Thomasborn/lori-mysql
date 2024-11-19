@@ -61,84 +61,100 @@ const findDetailModelProdukList = async (q = {}, page = 1, itemsPerPage = 10) =>
 };
 const findDaftarProduk = async (q, kategori, idOutlet, page = 1, itemsPerPage = 10) => {
   try {
-    const filters = { q, kategori, idOutlet };
-    
-    // Construct the SQL WHERE clause
-    let whereClauses = [];
-    let values = [];
+    let whereClause = '';
+    let params = [];
 
-    // Filter by idOutlet
+    // Handle `idOutlet` if provided
     if (idOutlet) {
-      whereClauses.push('po.outlet_id = ?');
-      values.push(idOutlet);
+      whereClause += ' AND po.outlet_id = ?';
+      params.push(idOutlet);
     }
 
-    // Filter by search query (q) on nama or kode
+    // Handle search query for `q`
     if (q) {
-      whereClauses.push(
-        `(mp.nama LIKE ? OR mp.kode LIKE ?)`
-      );
-      values.push(`%${q.toLowerCase()}%`, `%${q.toLowerCase()}%`);
+      whereClause += `
+        AND (
+          LOWER(mp.nama) LIKE LOWER(?) OR
+          LOWER(mp.kode) LIKE LOWER(?)
+        )
+      `;
+      params.push(`%${q}%`, `%${q}%`);
     }
 
-    // Filter by kategori
+    // Handle category filter `kategori` if provided
     if (kategori) {
-      whereClauses.push('mp.kategori = ?');
-      values.push(kategori);
+      whereClause += `
+        AND mp.kategori_id = (
+          SELECT id FROM kategori_produk WHERE nama = ?
+        )
+      `;
+      params.push(kategori);
     }
 
-    // Combine WHERE clauses
-    const whereClause = whereClauses.length ? 'WHERE ' + whereClauses.join(' AND ') : '';
-
-    // Count total data
-    const countQuery = `
-      SELECT COUNT(DISTINCT mp.id) AS totalData
+    // Count total matching records
+    const totalDataQuery = `
+      SELECT COUNT(*) AS total
       FROM produk_outlet po
-      JOIN detail_model_produk dmp ON po.id = dmp.produk_outlet_id
+      JOIN detail_model_produk dmp ON po.produk_id = dmp.id
       JOIN model_produk mp ON dmp.model_produk_id = mp.id
-      ${whereClause}
+      WHERE 1=1 ${whereClause}
     `;
-    const countResult = await prisma.$queryRaw(countQuery, ...values);
-    const totalData = countResult[0].totalData;
+    const totalDataResult = await prisma.$queryRaw(totalDataQuery, ...params);
+    const totalData = totalDataResult[0].total;
     const totalPages = Math.ceil(totalData / itemsPerPage);
 
-    // Fetch data with pagination
-    const fetchQuery = `
-      SELECT
-        mp.id AS model_produk_id,
-        mp.nama,
-        mp.kode,
-        mp.kategori AS kategori_nama,
-        GROUP_CONCAT(fp.filepath) AS foto_produk,
-        SUM(po.jumlah) AS stok,
-        MIN(dmp.harga_jual) AS hargaJualMin,
-        MAX(dmp.harga_jual) AS hargaJualMax
+    // Fetch paginated results
+    const produkOutletQuery = `
+      SELECT po.*, mp.*, dmp.*, o.*
       FROM produk_outlet po
-      JOIN detail_model_produk dmp ON po.id = dmp.produk_outlet_id
+      JOIN detail_model_produk dmp ON po.produk_id = dmp.id
       JOIN model_produk mp ON dmp.model_produk_id = mp.id
-      LEFT JOIN foto_produk fp ON mp.id = fp.model_produk_id
-      ${whereClause}
-      GROUP BY mp.id, mp.nama, mp.kode, mp.kategori
+      JOIN outlet o ON po.outlet_id = o.id
+      WHERE 1=1 ${whereClause}
       LIMIT ? OFFSET ?
     `;
+    params.push(itemsPerPage, (page - 1) * itemsPerPage);
 
-    values.push(itemsPerPage, (page - 1) * itemsPerPage);
+    const produkOutletList = await prisma.$queryRaw(produkOutletQuery, ...params);
+    
+    // Group data by model_produk.id
+    const groupedData = produkOutletList.reduce((acc, produkOutlet) => {
+      const { detail_model_produk } = produkOutlet;
+      const { model_produk } = detail_model_produk;
+      
+      // Initialize the group if it doesn't exist
+      if (!acc[model_produk.id]) {
+        acc[model_produk.id] = {
+          id: model_produk.id,
+          nama: model_produk.nama,
+          kode: model_produk.kode,
+          kategori: model_produk.kategori.nama,
+          foto: model_produk.foto_produk.map(foto => foto.filepath),
+          stok: 0,
+          hargaJualMin: Infinity,
+          hargaJualMax: -Infinity,
+          varian: [],
+        };
+      }
+      
+      // Aggregate stock and calculate min/max prices
+      acc[model_produk.id].stok += produkOutlet.jumlah;
+      acc[model_produk.id].hargaJualMin = Math.min(acc[model_produk.id].hargaJualMin, detail_model_produk.harga_jual);
+      acc[model_produk.id].hargaJualMax = Math.max(acc[model_produk.id].hargaJualMax, detail_model_produk.harga_jual);
+      
+      // Add variant data
+      acc[model_produk.id].varian.push({
+        ukuran: detail_model_produk.ukuran,
+        harga: detail_model_produk.harga_jual,
+        stok: produkOutlet.jumlah,
+      });
+    
+      return acc;
+    }, {});
 
-    const produkList = await prisma.$queryRaw(fetchQuery, ...values);
-
-    // Transform data into the desired structure
-    const transformedDataList = produkList.map(produk => ({
-      id: produk.model_produk_id,
-      nama: produk.nama,
-      kode: produk.kode,
-      kategori: produk.kategori_nama,
-      foto: produk.foto_produk ? produk.foto_produk.split(',') : [],
-      stok: produk.stok,
-      hargaJualMin: produk.hargaJualMin,
-      hargaJualMax: produk.hargaJualMax,
-      varian: [], // Varian logic needs more information on how it is structured
-    }));
-
+    // Transform the grouped data into the desired output format
+    const transformedDataList = Object.values(groupedData);
+    
     return {
       success: true,
       message: "Data produk berhasil diperoleh",
@@ -148,8 +164,13 @@ const findDaftarProduk = async (q, kategori, idOutlet, page = 1, itemsPerPage = 
       totalData,
       page: page.toString(),
       data: transformedDataList,
-      filters,
+      filter: {
+        q,
+        kategori,
+        idOutlet,
+      },
     };
+    
   } catch (error) {
     return {
       success: false,
@@ -158,6 +179,7 @@ const findDaftarProduk = async (q, kategori, idOutlet, page = 1, itemsPerPage = 
     };
   }
 };
+
 
 
 
