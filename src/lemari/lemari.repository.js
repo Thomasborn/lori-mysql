@@ -10,7 +10,7 @@ const findLemari = async (q, page = 1, itemsPerPage = 10) => {
 
     // Construct search criteria
     const whereClause = q 
-      ? { kode: { contains: q.toString(), lte: 'insensitive' } } 
+      ? { kode: { contains: q } } 
       : {};
 
     // Fetch count of lemari data based on search criteria

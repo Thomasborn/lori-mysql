@@ -12,7 +12,7 @@ const findRak = async (q, page = 1, itemsPerPage = 10) => {
     let whereClause = {};
     if (q) {
       whereClause = {
-        kode: { contains: q.toString()}
+      kode: { contains: q }
       };
     }
     // Fetch count of rak data based on search criteria
