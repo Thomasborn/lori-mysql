@@ -61,84 +61,62 @@ const findDetailModelProdukList = async (q = {}, page = 1, itemsPerPage = 10) =>
 };
 const findDaftarProduk = async ( q, kategori,idOutlet, page = 1, itemsPerPage = 10) => {
   try {
-    filters = [q, kategori,idOutlet];
-    let whereClause = {};
+    let whereClause = '';
+    let params = [];
 
-    // Add `outlet_id` to the clause only if `idOutlet` is provided
+    // Handle `idOutlet` if provided
     if (idOutlet) {
-      whereClause = {
-        ...whereClause,
-        outlet_id: idOutlet,
-      };
+      whereClause += ' AND p.outlet_id = ?';
+      params.push(idOutlet);
     }
 
-    // Search based on `q` parameter for `nama` or `kode` fields in `model_produk`
+    // Handle search query for `q`
     if (q) {
-      const lowercaseQ = q.toString().toLowerCase(); // Convert query to lowercase
-      whereClause = {
-        ...whereClause,
-        detail_model_produk: {
-          OR: [
-            {
-              model_produk: {
-                nama: {
-                  contains: lowercaseQ,
-                  lte: 'insensitive',
-                },
-              },
-            },
-            {
-              model_produk: {
-                kode: {
-                  contains: lowercaseQ,
-                  lte: 'insensitive',
-                },
-              },
-            },
-          ],
-        },
-      };
+      whereClause += `
+        AND (
+          LOWER(mp.nama) LIKE LOWER(?) OR
+          LOWER(mp.kode) LIKE LOWER(?)
+        )
+      `;
+      params.push(`%${q}%`, `%${q}%`);
     }
 
-    // Filter based on `kategori` parameter
+    // Handle category filter `kategori` if provided
     if (kategori) {
-      whereClause = {
-        ...whereClause,
-        detail_model_produk: {
-          ...whereClause.detail_model_produk,
-          model_produk: {
-            kategori: {
-              nama: kategori.toString(), // Ensure `kategori` is a string
-            },
-          },
-        },
-      };
+      whereClause += `
+        AND mp.kategori_id = (
+          SELECT id FROM kategori_produk WHERE nama = ?
+        )
+      `;
+      params.push(kategori);
     }
 
-    const totalData = await prisma.produk_outlet.count({
-      where: whereClause,
-    });
-console.log(whereClause);
+    // Count total matching records
+    const totalDataQuery = `
+      SELECT COUNT(*) AS total
+      FROM produk_outlet po
+      JOIN detail_model_produk dmp ON po.produk_id = dmp.id
+      JOIN model_produk mp ON dmp.model_produk_id = mp.id
+      WHERE 1=1 ${whereClause}
+    `;
+
+    const totalDataResult = await prisma.$queryRaw(totalDataQuery, ...params);
+    const totalData = totalDataResult[0].total;
     const totalPages = Math.ceil(totalData / itemsPerPage);
 
-    const produkOutletList = await prisma.produk_outlet.findMany({
-      where: whereClause,
-      include: {
-        detail_model_produk: {
-          include: {
-            model_produk: {
-              include: {
-                kategori: true,
-                foto_produk: true,
-              },
-            },
-          },
-        },
-        outlet: true,
-      },
-      skip: (page - 1) * itemsPerPage,
-      take: itemsPerPage,
-    });
+    // Fetch paginated results
+    const produkOutletQuery = `
+      SELECT po.*, mp.*, dmp.*, o.*
+      FROM produk_outlet po
+      JOIN detail_model_produk dmp ON po.produk_id = dmp.id
+      JOIN model_produk mp ON dmp.model_produk_id = mp.id
+      JOIN outlet o ON po.outlet_id = o.id
+      WHERE 1=1 ${whereClause}
+      LIMIT ? OFFSET ?
+    `;
+    params.push(itemsPerPage, (page - 1) * itemsPerPage);
+
+    const produkOutletList = await prisma.$queryRaw(produkOutletQuery, ...params);
     
     // Check if the list is empty
     // if (produkOutletList.length === 0) {
