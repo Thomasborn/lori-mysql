@@ -115,7 +115,7 @@ const findDaftarProduk = async (q, kategori, idOutlet, page = 1, itemsPerPage = 
       };
     }
 
-    const produkOutletList = await prisma.produkOutlet.findMany({
+    const produkOutletList = await prisma.produk_outlet.findMany({
       where: whereClause,
       include: {
         detail_model_produk: {
@@ -168,6 +168,7 @@ const findDaftarProduk = async (q, kategori, idOutlet, page = 1, itemsPerPage = 
     }, {});
 
     const transformedDataList = Object.values(groupedData);
+    console.log(JSON.stringify(whereClause, null, 2));
 
     return {
       success: true,
