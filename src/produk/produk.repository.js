@@ -76,8 +76,8 @@ const findDaftarProduk = async (q) => {
         detail_model_produk: {
           model_produk: {
             OR: [
-              { nama: { contains: lowercaseQ, mode: "insensitive" } },
-              { kode: { contains: lowercaseQ, mode: "insensitive" } },
+              { nama: { contains: lowercaseQ, lte: "insensitive" } },
+              { kode: { contains: lowercaseQ, lte: "insensitive" } },
             ],
           },
         },
