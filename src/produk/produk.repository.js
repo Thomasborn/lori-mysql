@@ -178,6 +178,7 @@ const findDaftarProduk = async (q, kategori, idOutlet, page = 1, itemsPerPage = 
       page: page.toString(),
       data: transformedDataList,
       filters,
+      lowercaseQ,
     };
   } catch (error) {
     return {
