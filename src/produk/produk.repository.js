@@ -81,16 +81,16 @@ const findDaftarProduk = async ( q, kategori,idOutlet, page = 1, itemsPerPage = 
             {
               model_produk: {
                 nama: {
-                  contains: q.toString(), // Ensure `q` is a string
-                  mode: 'insensitive',   // Enable case-insensitivity
+                  contains: q, // Ensure `q` is a string
+                  lte: 'insensitive',  // Set case-insensitivity
                 },
               },
             },
             {
               model_produk: {
                 kode: {
-                  contains: q.toString(), // Ensure `q` is a string
-                  mode: 'insensitive',   // Enable case-insensitivity
+                  contains: q, // Ensure `q` is a string
+                  lte: 'insensitive',
                 },
               },
             },
