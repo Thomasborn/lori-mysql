@@ -73,73 +73,76 @@ const findDaftarProduk = async ( q, kategori,idOutlet, page = 1, itemsPerPage = 
     }
 
     // Search based on `q` parameter for `nama` or `kode` fields in `model_produk`
-    if (q) {
-      whereClause = {
-        ...whereClause,
-        detail_model_produk: {
-          some: {
+   // Add search functionality for `q` on `nama` or `kode` in `model_produk`
+   if (q) {
+    whereClause = {
+      ...whereClause,
+      detail_model_produk: {
+        some: {
+          model_produk: {
             OR: [
               {
-                model_produk: {
-                  nama: {
-                    contains: q.toString(), // Ensure `q` is a string
-                    lte: 'insensitive', // Case-insensitive search
-                  },
+                nama: {
+                  contains: q.toString(),
+                  lte: 'insensitive', // Ensure case-insensitive search
                 },
               },
               {
-                model_produk: {
-                  kode: {
-                    contains: q.toString(),
-                    lte: 'insensitive', // Case-insensitive search
-                  },
+                kode: {
+                  contains: q.toString(),
+                  lte: 'insensitive',
                 },
               },
             ],
           },
         },
-      };
-    }
+      },
+    };
+  }
 
-    // Filter based on `kategori` parameter
-    if (kategori) {
-      whereClause = {
-        ...whereClause,
-        detail_model_produk: {
-          ...whereClause.detail_model_produk,
+  // Add filter for `kategori` if provided
+  if (kategori) {
+    whereClause = {
+      ...whereClause,
+      detail_model_produk: {
+        some: {
           model_produk: {
             kategori: {
-              nama: kategori.toString(), // Ensure `kategori` is a string
+              nama: kategori.toString(),
             },
           },
         },
-      };
-    }
-
-    const totalData = await prisma.produk_outlet.count({
-      where: whereClause,
-    });
-console.log(whereClause);
-    const totalPages = Math.ceil(totalData / itemsPerPage);
-
-    const produkOutletList = await prisma.produk_outlet.findMany({
-      where: whereClause,
-      include: {
-        detail_model_produk: {
-          include: {
-            model_produk: {
-              include: {
-                kategori: true,
-                foto_produk: true,
-              },
-            },
-          },
-        },
-        outlet: true,
       },
-      skip: (page - 1) * itemsPerPage,
-      take: itemsPerPage,
-    });
+    };
+  }
+
+  // Count total matching products
+  const totalData = await prisma.produk_outlet.count({
+    where: whereClause,
+  });
+
+  // Calculate total pages
+  const totalPages = Math.ceil(totalData / itemsPerPage);
+
+  // Fetch paginated product data
+  const produkOutletList = await prisma.produk_outlet.findMany({
+    where: whereClause,
+    include: {
+      detail_model_produk: {
+        include: {
+          model_produk: {
+            include: {
+              kategori: true,
+              foto_produk: true,
+            },
+          },
+        },
+      },
+      outlet: true,
+    },
+    skip: (page - 1) * itemsPerPage,
+    take: itemsPerPage,
+  });
     
     // Check if the list is empty
     // if (produkOutletList.length === 0) {
