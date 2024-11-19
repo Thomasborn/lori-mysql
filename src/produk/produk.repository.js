@@ -61,7 +61,7 @@ const findDetailModelProdukList = async (q = {}, page = 1, itemsPerPage = 10) =>
 };
 const findDaftarProduk = async ( q, kategori,idOutlet, page = 1, itemsPerPage = 10) => {
   try {
-    filters = q, kategori,idOutlet;
+    filters = [q, kategori,idOutlet];
     let whereClause = {};
 
     // Add `outlet_id` to the clause only if `idOutlet` is provided
@@ -82,7 +82,7 @@ const findDaftarProduk = async ( q, kategori,idOutlet, page = 1, itemsPerPage = 
               model_produk: {
                 nama: {
                   contains: q.toString(), // Ensure `q` is a string
-                  lte: 'insensitive',  // Set case-insensitivity
+                  mode: 'insensitive',   // Enable case-insensitivity
                 },
               },
             },
@@ -90,7 +90,7 @@ const findDaftarProduk = async ( q, kategori,idOutlet, page = 1, itemsPerPage = 
               model_produk: {
                 kode: {
                   contains: q.toString(), // Ensure `q` is a string
-                  lte: 'insensitive',
+                  mode: 'insensitive',   // Enable case-insensitivity
                 },
               },
             },
