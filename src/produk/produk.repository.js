@@ -68,6 +68,7 @@ const findDaftarProduk = async (q, kategori, idOutlet, page = 1, itemsPerPage = 
     if (idOutlet) {
       whereClause.outlet_id = idOutlet;
     }
+    const lowercaseQ = q.toString().toLowerCase();
 
     // Debugging: Log filters and initial whereClause
     console.log('Filters:', filters);
@@ -75,7 +76,6 @@ const findDaftarProduk = async (q, kategori, idOutlet, page = 1, itemsPerPage = 
 
     // Search based on `q` for `nama` or `kode` in `model_produk`
     if (q) {
-      const lowercaseQ = q.toString().toLowerCase();
       whereClause = {
         ...whereClause,
         detail_model_produk: {
