@@ -65,8 +65,11 @@ const findDaftarProduk = async (q, kategori, idOutlet, page = 1, itemsPerPage = 
     let whereClause = {};
 
     if (idOutlet && !isNaN(idOutlet) && idOutlet!=null) {
-      console.log("tesssssssssssssst")
-
+      return {
+        success: false,
+        message: "Terjadi kesalahan saat mengambil data outlet",
+        error: idOutlet,
+      };
       whereClause.outlet_id = idOutlet;
     }
 
@@ -98,6 +101,11 @@ const findDaftarProduk = async (q, kategori, idOutlet, page = 1, itemsPerPage = 
     // Filter by `kategori`
     if (kategori && kategori.trim() !== '') {
       console.log("tesssssssssssssst")
+      return {
+        success: false,
+        message: "Terjadi kesalahan saat mengambil data outlet",
+        error: kategori,
+      };
       whereClause = {
         ...whereClause,
         detail_model_produk: {
