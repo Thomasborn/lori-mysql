@@ -122,29 +122,12 @@ const findDaftarProduk = async (q, kategori, idOutlet, page = 1, itemsPerPage = 
     console.log('Updated Where Clause after q and kategori filters:', whereClause);
 
     // Count total data
-    const totalData = await prisma.produk_outlet.count({
-      where: whereClause,
-      include: {
-        detail_model_produk: {
-          include: {
-            model_produk: {
-              include: {
-                kategori: true,
-                foto_produk: true,
-              },
-            },
-          },
-        },
-        outlet: true,
-      },
-    });
+    // const totalData = await prisma.produk_outlet.count({
+    //   where: whereClause,
+      
+    // });
 
-    const totalPages = Math.ceil(totalData / itemsPerPage);
-
-    // Debugging: Log the total data count
-    console.log('Total Data:', totalData);
-    console.log('Total Pages:', totalPages);
-
+  
     // Fetch data
     const produkOutletList = await prisma.produk_outlet.findMany({
       where: whereClause,
@@ -164,6 +147,12 @@ const findDaftarProduk = async (q, kategori, idOutlet, page = 1, itemsPerPage = 
       skip: (page - 1) * itemsPerPage,
       take: itemsPerPage,
     });
+    const totalData = produkOutletList.length;
+    const totalPages = Math.ceil(totalData / itemsPerPage);
+
+    // Debugging: Log the total data count
+    console.log('Total Data:', totalData);
+    console.log('Total Pages:', totalPages);
 
     // Debugging: Log the fetched data
     console.log('Fetched produkOutletList:', produkOutletList);
