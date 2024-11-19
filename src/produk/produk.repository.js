@@ -64,10 +64,11 @@ const findDaftarProduk = async (q, kategori, idOutlet, page = 1, itemsPerPage = 
     const filters = { q, kategori, idOutlet };
     let whereClause = {};
 
-    // Add `outlet_id` to the clause only if `idOutlet` is provided
-    if (idOutlet) {
+    if (idOutlet && !isNaN(idOutlet)) {
       whereClause.outlet_id = idOutlet;
     }
+
+    // Skip if `q` is invalid (undefined, null, NaN, or an empty string)
     const lowercaseQ = q.toString().toLowerCase();
 
     // Debugging: Log filters and initial whereClause
@@ -75,7 +76,8 @@ const findDaftarProduk = async (q, kategori, idOutlet, page = 1, itemsPerPage = 
     console.log('Initial Where Clause:', whereClause);
 
     // Search based on `q` for `nama` or `kode` in `model_produk`
-    if (q) {
+    if (q && q.trim() !== '') {
+
       whereClause = {
         ...whereClause,
         detail_model_produk: {
@@ -92,7 +94,7 @@ const findDaftarProduk = async (q, kategori, idOutlet, page = 1, itemsPerPage = 
     }
 
     // Filter by `kategori`
-    if (kategori) {
+    if (kategori && kategori.trim() !== '') {
       whereClause = {
         ...whereClause,
         detail_model_produk: {
