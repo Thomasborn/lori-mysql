@@ -414,18 +414,18 @@ const updateModelProdukRepo = async (id, updateModelProdukData) => {
           ? await prisma.detail_model_produk.update({
               where: { id: existingVariant.id },
               data: {
-                biaya_jahit: biayaJahit,
+                biaya_jahit: parseFloat(biayaJahit),
                 hpp,
-                harga_jual: hargaJual,
+              harga_jual: parseFloat(hargaJual),
                 // stok,
               },
             })
           : await prisma.detail_model_produk.create({
               data: {
                 ukuran,
-                biaya_jahit: biayaJahit,
+                biaya_jahit: parseFloat(biayaJahit),
                 hpp,
-                harga_jual: hargaJual,
+                harga_jual: parseFloat(hargaJual),
                 // stok,
                 model_produk: {
                   connect: {
