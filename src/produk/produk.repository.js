@@ -62,10 +62,12 @@ const findDetailModelProdukList = async (q = {}, page = 1, itemsPerPage = 10) =>
 const findDaftarProduk = async (q, kategori, idOutlet, page = 1, itemsPerPage = 10) => {
   try {
     const filters = { q, kategori, idOutlet };
-    let whereClause = {
-      ...(idOutlet && { outlet_id: idOutlet }),
-    };
+    let whereClause = {};
 
+    // Add `outlet_id` to the clause only if `idOutlet` is provided
+    if (idOutlet) {
+      whereClause.outlet_id = idOutlet;
+    }
     // Search based on `q` for `nama` or `kode` in `model_produk`
     if (q) {
       const lowercaseQ = q.toString().toLowerCase();
@@ -76,8 +78,8 @@ const findDaftarProduk = async (q, kategori, idOutlet, page = 1, itemsPerPage = 
           model_produk: {
             ...(whereClause.detail_model_produk?.model_produk || {}),
             OR: [
-              { nama: { contains: lowercaseQ, mode: 'insensitive' } },
-              { kode: { contains: lowercaseQ, mode: 'insensitive' } },
+              { nama: { contains: lowercaseQ, lte: 'insensitive' } },
+              { kode: { contains: lowercaseQ, lte: 'insensitive' } },
             ],
           },
         },
