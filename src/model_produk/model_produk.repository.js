@@ -293,7 +293,7 @@ const insertModelProdukRepo = async (newModelProdukData) => {
     return { model_produk, createdPhotos, createdVarian };
   } catch (error) {
     console.error(error);
-    throw new Error('Gagal menambahkan model produk baru',error);
+    throw new Error('Gagal menambahkan model produk baru',error.message);
   }
 };
 const updateModelProdukRepo = async (id, updateModelProdukData) => {
