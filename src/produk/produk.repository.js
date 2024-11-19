@@ -77,24 +77,26 @@ const findDaftarProduk = async ( q, kategori,idOutlet, page = 1, itemsPerPage = 
       whereClause = {
         ...whereClause,
         detail_model_produk: {
-          OR: [
-            {
-              model_produk: {
-                nama: {
-                  contains: "z", // Ensure `q` is a string
-                  lte: 'insensitive',  // Set case-insensitivity
+          some: {
+            OR: [
+              {
+                model_produk: {
+                  nama: {
+                    contains: q.toString(), // Ensure `q` is a string
+                    lte: 'insensitive', // Case-insensitive search
+                  },
                 },
               },
-            },
-            {
-              model_produk: {
-                kode: {
-                  contains: q.toString(), // Ensure `q` is a string
-                  lte: 'insensitive',
+              {
+                model_produk: {
+                  kode: {
+                    contains: q.toString(),
+                    lte: 'insensitive', // Case-insensitive search
+                  },
                 },
               },
-            },
-          ],
+            ],
+          },
         },
       };
     }
