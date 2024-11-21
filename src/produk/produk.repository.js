@@ -850,7 +850,7 @@ const deleteDaftarProdukByIdRepo = async (id) => {
 
 module.exports={
   findDaftarProduk,
-  findDaftarProdukOutlet
+  findDaftarProdukOutlet,
   findDaftarProdukById,
   findDaftarProdukBySku,
   insertDaftarProdukRepo,
