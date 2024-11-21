@@ -28,49 +28,45 @@ const findQcProduk = async (query) => {
     ],
   };
 
- const qc_produk = await prisma.qc_produk.findMany({
-  where,
-  select: {
-    id: true,  // Scalar fields you need
-    produk: {
-      select: {
-        id: true,  // Nested fields in related models
-      },
-    },
-    user: {
-      select: {
-        id: true,
-        karyawan: {
-          select: {
-            id: true,
-            nama: true,
+  const qc_produk = await prisma.qc_produk.findMany({
+    where,
+    include: {
+      produk: {  // Include the entire produk object
+        include: {
+          detail_model_produk: {
+            include: {
+              model_produk: true, // Include the entire model_produk object
+            },
           },
         },
       },
+      user: {
+        include: {
+          karyawan: true, // Include the entire karyawan object
+        },
+      },
     },
-  },
-  take,
-  skip,
-});
-
-
+    take,
+    skip,
+  });
+  
   const totalData = await prisma.qc_produk.count({ where });
-
+  
   const reshapedData = qc_produk.map((qc) => ({
     id: qc.id,
     tanggalTemuan: qc.tanggal_temuan ? qc.tanggal_temuan.toLocaleDateString() : null,
     tanggalSelesai: qc.tanggal_selesai ? qc.tanggal_selesai.toLocaleDateString() : null,
-    idProduk: qc.produk_outlet.id,
-    kodeProduk: qc.produk_outlet.kode,
-    namaProduk: qc.produk_outlet.nama,
-    kategoriProduk: qc.produk_outlet.kategori,
-    ukuranProduk: qc.produk_outlet.ukuran,
+    idProduk: qc.produk?.id, // Use optional chaining to avoid errors
+    kodeProduk: qc.produk?.detail_model_produk.model_produk.kode,
+    namaProduk: qc.produk?.detail_model_produk.model_produk.nama,
+    // kategoriProduk: qc.produk?.detail_model_produk.model_produk.kategori,
+    ukuranProduk: qc.produk?.ukuran,
     jumlah: qc.jumlah,
     tindakan: qc.tindakan,
     status: qc.status,
     catatan: qc.catatan,
-    idPenggunaQc: qc.user.id,
-    namaPenggunaQc: qc.user.karyawan ? qc.user.karyawan.nama : null,
+    idPenggunaQc: qc.user?.id, // Use optional chaining
+    namaPenggunaQc: qc.user?.karyawan?.nama || null, // Use optional chaining
   }));
 
   return {

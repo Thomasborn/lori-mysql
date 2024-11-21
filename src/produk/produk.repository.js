@@ -152,7 +152,7 @@ const findDaftarProduk = async (q, kategori, idOutlet, page = 1, itemsPerPage = 
 
     // Debugging: Log the total data count
     console.log('Total Data:', totalData);
-    console.log('Total Pages:', totalPages);
+    console.log('assasa');
 
     // Debugging: Log the fetched data
     console.log('Fetched produkOutletList:', produkOutletList);
@@ -164,7 +164,7 @@ const findDaftarProduk = async (q, kategori, idOutlet, page = 1, itemsPerPage = 
 
       if (!acc[model_produk.id]) {
         acc[model_produk.id] = {
-          id: produkOutletList.id,
+          id: produkOutlet.id,
           nama: model_produk.nama,
           kode: model_produk.kode,
           kategori: model_produk.kategori?.nama || null,
