@@ -190,63 +190,65 @@ const findById = async (id) => {
     throw new Error(`Error fetching distribusi dengan ID ${id}: ${error.message}`);
   }
 };
+const parseIntSafe = (value) => {
+  const parsedValue = parseInt(value);
+  return isNaN(parsedValue) ? null : parsedValue; // Returns null if parsing fails
+};
+
 const createDistribusi = async (data) => {
   try {
-    const { 
-      catatan, 
-      idAsalOutlet, 
-      idPenggunaPic, 
-      idTujuanOutlet, 
-      idVarian, 
-      jumlah, 
-      namaAsalOutlet, 
-      namaPenggunaPic, 
-      namaProduk, 
-      namaTujuanOutlet, 
-      tanggal, 
-      ukuranProduk 
+    const {
+      catatan,
+      idAsalOutlet,
+      idPenggunaPic,
+      idTujuanOutlet,
+      idVarian,
+      jumlah,
+      namaAsalOutlet,
+      namaPenggunaPic,
+      namaProduk,
+      namaTujuanOutlet,
+      tanggal,
+      ukuranProduk
     } = data;
-    
-    // Assuming tanggal is in the format "DD/MM/YYYY", parse it to DateTime
+
+    // Debugging Logs: Check the incoming data
+    console.log('Input data:', data);
+
+    // Parse and validate the date
     const parsedTanggal = new Date(tanggal.split('/').reverse().join('-'));
-    
-    // Check if the parsed date is valid
     if (isNaN(parsedTanggal.getTime())) {
       throw new Error('Invalid date format. Please provide a valid date in DD/MM/YYYY format.');
     }
-    
-    // Ensure all required fields are converted to integers
-    const parsedJumlah = parseInt(jumlah);
-    const parsedIdAsalOutlet = parseInt(idAsalOutlet);
-    const parsedIdTujuanOutlet = parseInt(idTujuanOutlet);
-    const parsedIdVarian = parseInt(idVarian);
-    const parsedIdPenggunaPic = parseInt(idPenggunaPic);
-    
-    // Check if `idVarian` or any other ID is invalid
-    if (isNaN(parsedJumlah) || isNaN(parsedIdAsalOutlet) || isNaN(parsedIdTujuanOutlet) || isNaN(parsedIdVarian) || isNaN(parsedIdPenggunaPic)) {
+
+    // Parse and validate all required IDs and quantities
+    const parsedJumlah = parseIntSafe(jumlah);
+    const parsedIdAsalOutlet = parseIntSafe(idAsalOutlet);
+    const parsedIdTujuanOutlet = parseIntSafe(idTujuanOutlet);
+    const parsedIdVarian = parseIntSafe(idVarian);
+    const parsedIdPenggunaPic = parseIntSafe(idPenggunaPic);
+
+    // Debugging Logs: Check the parsed values
+    console.log('Parsed values:', { parsedJumlah, parsedIdAsalOutlet, parsedIdTujuanOutlet, parsedIdVarian, parsedIdPenggunaPic });
+
+    if ([parsedJumlah, parsedIdAsalOutlet, parsedIdTujuanOutlet, parsedIdVarian, parsedIdPenggunaPic].includes(null)) {
       throw new Error('Invalid input data. Ensure all IDs and quantities are valid numbers.');
     }
-    
+
+    // Create or connect the distribusi record
     const createdDistribusi = await prisma.distribusi.create({
       data: {
         catatan,
-        jumlah: parseInt(jumlah), // Ensure `jumlah` is an integer
+        jumlah: parsedJumlah,
         tanggal: parsedTanggal,
-        asal_outlet_id: parseInt(idAsalOutlet),
-        tujuan_outlet_id: parseInt(idTujuanOutlet),
-        produk_id: parseInt(idVarian), // Assuming idVarian is the variant ID
-        idPic: parseInt(idPenggunaPic), // Assuming idPenggunaPic is the user's ID
-    
-        // Connect or create a 'Pic' user
+        asal_outlet_id: parsedIdAsalOutlet,
+        tujuan_outlet_id: parsedIdTujuanOutlet,
+        produk_id: parsedIdVarian,
+        idPic: parsedIdPenggunaPic,
         Pic: {
           connectOrCreate: {
-            where: {
-              id: parsedIdPenggunaPic, // Assuming the 'Pic' user has a unique ID
-            },
-            create: {
-              id: parsedIdPenggunaPic, // Use the same ID to create the user if it doesn't exist
-              // Add any additional fields needed for creating the Pic
-            },
+            where: { id: parsedIdPenggunaPic },
+            create: { id: parsedIdPenggunaPic }
           },
         },
       },
@@ -257,35 +259,36 @@ const createDistribusi = async (data) => {
         tujuanOutlet: true,
       },
     });
-    
-    
 
-    // Reshape the response to match the expected format
+    // Reshape and return response
     const reshapedResponse = {
       success: true,
-      message: 'Data distribusi berhasil ditambahkan dengan ID ' + createdDistribusi.id,
+      message: `Data distribusi berhasil ditambahkan dengan ID ${createdDistribusi.id}`,
       data: {
         id: createdDistribusi.id,
-        tanggal: tanggal,
-        idVarian: idVarian,
-        namaProduk: namaProduk,
-        ukuranProduk: ukuranProduk,
-        jumlah: jumlah,
-        idAsalOutlet: idAsalOutlet,
-        namaAsalOutlet: namaAsalOutlet,
-        idTujuanOutlet: idTujuanOutlet,
-        namaTujuanOutlet: namaTujuanOutlet,
-        catatan: catatan,
-        idPenggunaPic: idPenggunaPic,
-        namaPenggunaPic: namaPenggunaPic
+        tanggal,
+        idVarian,
+        namaProduk,
+        ukuranProduk,
+        jumlah,
+        idAsalOutlet,
+        namaAsalOutlet,
+        idTujuanOutlet,
+        namaTujuanOutlet,
+        catatan,
+        idPenggunaPic,
+        namaPenggunaPic
       }
     };
 
     return reshapedResponse;
+
   } catch (error) {
+    console.error('Error creating distribusi:', error); // Log the error for debugging
     throw new Error(`Failed to create distribusi: ${error.message}`);
   }
 };
+
 
 
 // Create a new distribusi
