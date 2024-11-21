@@ -99,7 +99,7 @@ router.delete("/:id", async (req, res) => {
     // If the qc_produk exists, delete it
    await deleteQcProdukById(parseInt(id))
 
-    res.json({ message: "qc_produk deleted successfully" });
+    res.json({ success: true, message: "Data berhasil dihapus" });
   } catch (error) {
     console.error('Error deleting qc_produk:', error);
     res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });

@@ -21,7 +21,7 @@ router.get("/:id", async (req, res) => {
     if (!distribusi) {
       return res.status(404).json({ error: "Distribusi not found" });
     }
-    res.status(200).json(distribusi);
+    res.json({ success: true, message: "Data berhasil dihapus" });
   } catch (error) {
     res.status(500).json({ error: error.message });
     console.log(error)
