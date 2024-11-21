@@ -187,7 +187,6 @@ const findDaftarProduk = async (q, kategori, idOutlet, page = 1, itemsPerPage = 
       );
 
       acc[model_produk.id].varian.push({
-        idVarian: detail_model_produk.id,
         ukuran: detail_model_produk.ukuran,
         harga: detail_model_produk.harga_jual,
         stok: produkOutlet.jumlah,
