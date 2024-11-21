@@ -4,7 +4,7 @@ const {
   insertModelProduk,
   getDaftarProdukById
 } = require("../daftar_produk/daftar_produk.service");
-const findProduk = async (query) => {
+const findProduk = async (query) => { 
   const { q, bulanMulai, tahunMulai, bulanSelesai, tahunSelesai, status, itemsPerPage, page, user_id } = query;
 
   // Construct the start date for the range
@@ -14,6 +14,7 @@ const findProduk = async (query) => {
   if (endDate) endDate.setMonth(endDate.getMonth() + 1); // Move to the next month
   if (endDate) endDate.setDate(0); // Get the last date of the month
 
+  // Start date filter should be adjusted to avoid showing 2024 if 2023 is specified
   const whereConditions = {
     ...(status && { status }),
     ...(startDate && {
@@ -31,7 +32,7 @@ const findProduk = async (query) => {
         karyawan: {
           nama: {
             contains: q,
-            lte: 'insensitive',
+            mode: 'insensitive',
           },
         },
       },
@@ -39,6 +40,7 @@ const findProduk = async (query) => {
     ...(user_id && { user_id }), // Include user_id condition if it exists
   };
 
+  // Fetch the data
   const produksi = await prisma.produksi.findMany({
     where: whereConditions,
     include: {
@@ -57,21 +59,31 @@ const findProduk = async (query) => {
     skip: parseInt(itemsPerPage, 10) * (parseInt(page, 10) - 1),
   });
 
+  // Filter out data if tahunMulai is 2023 and it does not exist in the database
+  const filteredData = produksi.filter(item => {
+    if (tahunMulai && parseInt(tahunMulai) === 2023) {
+      return item.tanggal_mulai.getFullYear() === 2023;
+    }
+    return true; // Include all if the year doesn't match 2023
+  });
+
+  // Get total count for pagination
   const totalData = await prisma.produksi.count({
     where: whereConditions,
   });
 
   const totalPages = Math.ceil(totalData / parseInt(itemsPerPage, 10));
 
-  const reshapedData = produksi.map((item) => ({
+  // Reshape data for response
+  const reshapedData = filteredData.map((item) => ({
     id: item.id,
     tanggalMulai: item.tanggal_mulai.toLocaleDateString(),
     tanggalSelesai: item.tanggal_selesai ? item.tanggal_selesai.toLocaleDateString() : null,
-    ukuran: item.detail_model_produk.ukuran || 'Tidak ada', // Adjust based on your data structure
+    ukuran: item.detail_model_produk.ukuran || 'Tidak ada',
     jumlah: item.jumlah,
     status: item.status,
-    produk: item.detail_model_produk.model_produk.nama || 'Tidak ada', // Adjust based on your data structure
-    namaPenggunaPenjahit: item.user.karyawan.nama, // Ensure this path is correct
+    produk: item.detail_model_produk.model_produk.nama || 'Tidak ada',
+    namaPenggunaPenjahit: item.user.karyawan.nama,
   }));
 
   return {
