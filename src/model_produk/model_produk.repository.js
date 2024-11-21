@@ -204,13 +204,14 @@ const insertModelProdukRepo = async (newModelProdukData) => {
       },
     });
 
-    let createdPhotos = null;
-    // Handle creation of photos associated with the model if foto exists
-    if (foto && foto.length > 0) {
+    const fotos = Array.isArray(foto) ? foto : foto ? [foto] : [];
+
+    // Handle creation of photos if any are provided
+    if (fotos.length > 0) {
       createdPhotos = await Promise.all(
-        foto.map(async (file) => {
-          // Generate a random filename if it doesn't exist or is undefined
-          const filename = file.filename ? file.filename : uuidv4() + path.extname(file.originalname);
+        fotos.map(async (file) => {
+          // Generate a unique filename if not already defined
+          const filename = file.filename || uuidv4() + path.extname(file.originalname);
           const targetDir = path.join(__dirname, 'public/images/model-produk');
           const targetPath = path.join(targetDir, filename);
 
@@ -222,15 +223,15 @@ const insertModelProdukRepo = async (newModelProdukData) => {
           // Move the file to the target directory
           fs.copyFileSync(file.path, targetPath);
 
-          const imageUrls = '/public/images/model-produk/' + filename;
+          const imageUrl = `/public/images/model-produk/${filename}`;
 
-          // Create foto_produk entry and link it to model_produk
+          // Create foto_produk entry linked to model_produk
           const createdPhoto = await prisma.foto_produk.create({
             data: {
-              filepath: imageUrls,
+              filepath: imageUrl,
               model_produk: {
                 connect: {
-                  id: parseInt(model_produk.id),
+                  id: model_produk.id,
                 },
               },
             },

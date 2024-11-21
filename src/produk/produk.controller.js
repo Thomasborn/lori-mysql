@@ -49,7 +49,7 @@ router.get("/:id", async (req, res) => {
     });
   }
 });
-router.post("/", imageUpload, async (req, res) => {
+router.post("/", imageSingleUpload, async (req, res) => {
   try {
     // Handle file upload if imageUpload middleware is used
     const foto = req.files && req.files.length > 0 ? req.files : null;
@@ -61,8 +61,9 @@ router.post("/", imageUpload, async (req, res) => {
       nama: req.body.nama,
       varian: req.body.varian, // No need to parse varian as it should be JSON object already
       bahan: req.body.bahan,   // No need to parse bahan as it should be JSON object already
-      foto: foto,  // Attach foto to data
+      foto: req.foto.file,  // Attach foto to data
     };
+    // const file = req.foto.file;
 
     // Call your function to insert produk data
     const produk = await insertDaftarProduk(data);
