@@ -187,6 +187,169 @@ const findDaftarProduk = async (q, kategori, idOutlet, page = 1, itemsPerPage = 
       );
 
       acc[model_produk.id].varian.push({
+        idVarian: detail_model_produk.id,
+        ukuran: detail_model_produk.ukuran,
+        harga: detail_model_produk.harga_jual,
+        stok: produkOutlet.jumlah,
+      });
+
+      return acc;
+    }, {});
+
+    // Transform grouped data into an array
+    const transformedDataList = Object.values(groupedData);
+
+    return {
+      success: true,
+      message: "Data produk berhasil diperoleh",
+      dataTitle: "Produk",
+      itemsPerPage,
+      totalPages,
+      totalData,
+      page: page.toString(),
+      data: transformedDataList,
+      filters,
+      lowercaseQ,
+    };
+  } catch (error) {
+    // Debugging: Log error if it occurs
+    console.error('Error occurred:', error.message);
+    return {
+      success: false,
+      message: "Terjadi kesalahan saat mengambil data produk",
+      error: error.message,
+    };
+  }
+};
+const findDaftarProdukOutlet = async (q, kategori, idOutlet, page = 1, itemsPerPage = 10) => {
+  try {
+    const filters = { q, kategori, idOutlet };
+    let whereClause = {};
+
+    if (idOutlet && !isNaN(idOutlet) && idOutlet!=null) {
+      // return {
+      //   success: false,
+      //   message: "Terjadi kesalahan saat mengambil data outlet",
+      //   error: idOutlet,
+      // };
+      whereClause.outlet_id = idOutlet;
+    }
+
+    // Skip if `q` is invalid (undefined, null, NaN, or an empty string)
+    const lowercaseQ = q.toString().toLowerCase();
+
+    // Debugging: Log filters and initial whereClause
+    console.log('Filters:', filters);
+    console.log('Initial Where Clause:', whereClause);
+
+    // Search based on `q` for `nama` or `kode` in `model_produk`
+    if (q && q.trim() !== '') {
+
+      whereClause = {
+        ...whereClause,
+        detail_model_produk: {
+          ...whereClause.detail_model_produk,
+          model_produk: {
+            ...(whereClause.detail_model_produk?.model_produk || {}),
+            OR: [
+              { nama: { contains: lowercaseQ} },  // Using lte, but this may not work as intended
+              { kode: { contains: lowercaseQ} },  // Using lte, but this may not work as intended
+            ],
+          },
+        },
+      };
+    }
+
+    // Filter by `kategori`
+    if (kategori && kategori.trim() !== '') {
+      // console.log("tesssssssssssssst")
+      // return {
+      //   success: false,
+      //   message: "Terjadi kesalahan saat mengambil data outlet",
+      //   error: kategori,
+      // };
+      whereClause = {
+        ...whereClause,
+        detail_model_produk: {
+          ...whereClause.detail_model_produk,
+          model_produk: {
+            ...(whereClause.detail_model_produk?.model_produk || {}),
+            kategori: { nama: kategori.toString() },
+          },
+        },
+      };
+    }
+
+    // Debugging: Log updated whereClause after filtering by q and kategori
+    console.log('Updated Where Clause after q and kategori filters:', whereClause);
+
+    // Count total data
+    // const totalData = await prisma.produk_outlet.count({
+    //   where: whereClause,
+      
+    // });
+
+  
+    // Fetch data
+    const produkOutletList = await prisma.produk_outlet.findMany({
+      where: whereClause,
+      include: {
+        detail_model_produk: {
+          include: {
+            model_produk: {
+              include: {
+                kategori: true,
+                foto_produk: true,
+              },
+            },
+          },
+        },
+        outlet: true,
+      },
+      skip: (page - 1) * itemsPerPage,
+      take: itemsPerPage,
+    });
+    const totalData = produkOutletList.length;
+    const totalPages = Math.ceil(totalData / itemsPerPage);
+
+    // Debugging: Log the total data count
+    console.log('Total Data:', totalData);
+    console.log('Total Pages:', totalPages);
+
+    // Debugging: Log the fetched data
+    console.log('Fetched produkOutletList:', produkOutletList);
+
+    // Group data by `model_produk.id`
+    const groupedData = produkOutletList.reduce((acc, produkOutlet) => {
+      const { detail_model_produk } = produkOutlet;
+      const { model_produk } = detail_model_produk;
+
+      if (!acc[model_produk.id]) {
+        acc[model_produk.id] = {
+          id: produkOutlet.id,
+          nama: model_produk.nama,
+          kode: model_produk.kode,
+          kategori: model_produk.kategori?.nama || null,
+          foto: model_produk.foto_produk.map((foto) => foto.filepath),
+          stok: 0,
+          hargaJualMin: Infinity,
+          hargaJualMax: -Infinity,
+          varian: [],
+        };
+      }
+
+      acc[model_produk.id].stok += produkOutlet.jumlah;
+      acc[model_produk.id].hargaJualMin = Math.min(
+        acc[model_produk.id].hargaJualMin,
+        detail_model_produk.harga_jual
+      );
+      acc[model_produk.id].hargaJualMax = Math.max(
+        acc[model_produk.id].hargaJualMax,
+        detail_model_produk.harga_jual
+      );
+
+      acc[model_produk.id].varian.push({
+        idVarian: detail_model_produk.id,
         ukuran: detail_model_produk.ukuran,
         harga: detail_model_produk.harga_jual,
         stok: produkOutlet.jumlah,
@@ -687,6 +850,7 @@ const deleteDaftarProdukByIdRepo = async (id) => {
 
 module.exports={
   findDaftarProduk,
+  findDaftarProdukOutlet
   findDaftarProdukById,
   findDaftarProdukBySku,
   insertDaftarProdukRepo,
