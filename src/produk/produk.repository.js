@@ -164,7 +164,7 @@ const findDaftarProduk = async (q, kategori, idOutlet, page = 1, itemsPerPage = 
 
       if (!acc[model_produk.id]) {
         acc[model_produk.id] = {
-          id: model_produk.id,
+          id: produkOutletList.id,
           nama: model_produk.nama,
           kode: model_produk.kode,
           kategori: model_produk.kategori?.nama || null,
