@@ -147,53 +147,62 @@ const findDaftarProduk = async (q, kategori, idOutlet, page = 1, itemsPerPage = 
       skip: (page - 1) * itemsPerPage,
       take: itemsPerPage,
     });
+    
     const totalData = produkOutletList.length;
     const totalPages = Math.ceil(totalData / itemsPerPage);
-
+    
     // Debugging: Log the total data count
     console.log('Total Data:', totalData);
     console.log('Total Pages:', totalPages);
-
+    
     // Debugging: Log the fetched data
     console.log('Fetched produkOutletList:', produkOutletList);
-
+    
     // Group data by `model_produk.id`
     const groupedData = produkOutletList.reduce((acc, produkOutlet) => {
       const { detail_model_produk } = produkOutlet;
+    
+      // Ensure `detail_model_produk` exists
+      if (!detail_model_produk || !detail_model_produk.model_produk) return acc;
+    
       const { model_produk } = detail_model_produk;
-
+    
       if (!acc[model_produk.id]) {
         acc[model_produk.id] = {
           id: model_produk.id,
           nama: model_produk.nama,
           kode: model_produk.kode,
           kategori: model_produk.kategori?.nama || null,
-          foto: model_produk.foto_produk.map((foto) => foto.filepath),
+          foto: model_produk.foto_produk?.map((foto) => foto.filepath) || [],
           stok: 0,
           hargaJualMin: Infinity,
           hargaJualMax: -Infinity,
           varian: [],
         };
       }
-
-      acc[model_produk.id].stok += produkOutlet.jumlah;
+    
+      acc[model_produk.id].stok += produkOutlet.jumlah || 0;
       acc[model_produk.id].hargaJualMin = Math.min(
         acc[model_produk.id].hargaJualMin,
-        detail_model_produk.harga_jual
+        detail_model_produk.harga_jual || Infinity
       );
       acc[model_produk.id].hargaJualMax = Math.max(
         acc[model_produk.id].hargaJualMax,
-        detail_model_produk.harga_jual
+        detail_model_produk.harga_jual || -Infinity
       );
-
+    
       acc[model_produk.id].varian.push({
-        ukuran: detail_model_produk.ukuran,
-        harga: detail_model_produk.harga_jual,
-        stok: produkOutlet.jumlah,
+        idVarian: detail_model_produk.id, // Ensure this field exists in your data model
+        ukuran: detail_model_produk.ukuran || 'Unknown',
+        harga: detail_model_produk.harga_jual || 0,
+        stok: produkOutlet.jumlah || 0,
       });
-
+    
       return acc;
     }, {});
+    
+    console.log('Grouped Data:', groupedData);
+    
 
     // Transform grouped data into an array
     const transformedDataList = Object.values(groupedData);
