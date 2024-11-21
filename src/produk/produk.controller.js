@@ -10,6 +10,7 @@ const {
   updatedDaftarProduk,
   getDaftarProdukById,
   deleteDaftarProdukById,
+  getDaftarProdukOutlet,
 } = require("./produk.service");
 
 const router = express.Router();
@@ -20,6 +21,18 @@ router.get("/", async (req, res) => {
 
     // Fetching data based on search criteria and pagination
     const result = await getDaftarProduk(q, kategori,parseInt(idOutlet), parseInt(page, 10), parseInt(itemsPerPage, 10));
+
+    res.send(result);
+console.log(result)
+  } 
+);
+router.get("/outlet", async (req, res) => {
+
+    // Extracting query parameters for search and pagination
+    const { q, idOutlet,kategori, page = 1, itemsPerPage = 10 } = req.query;
+
+    // Fetching data based on search criteria and pagination
+    const result = await getDaftarProdukOutlet(q, kategori,parseInt(idOutlet), parseInt(page, 10), parseInt(itemsPerPage, 10));
 
     res.send(result);
 console.log(result)

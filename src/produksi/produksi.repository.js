@@ -165,14 +165,14 @@ const findProduksiById = async (id) => {
 };
 
 const insertProduksiRepo = async (newProdukData) => {
-  const { tanggalMulai, idProduk, produk, ukuran, jumlah, catatan, idPenggunaPenjahit, namaPenggunaPenjahit } = newProdukData;
+  const { tanggalMulai, idVarian, produk, ukuran, jumlah, catatan, idPenggunaPenjahit, namaPenggunaPenjahit } = newProdukData;
   const [day, month, year] = tanggalMulai.split('/');
   const formattedDate = new Date(`${year}-${month}-${day}`);
   const createdProduksi = await prisma.produksi.create({
     data: {
       tanggal_mulai: formattedDate,
       status: "pengerjaan",
-      detail_model_produk: { connect: { id: idProduk } },
+      detail_model_produk: { connect: { id: idVarian } },
       user: { connect: { id: idPenggunaPenjahit } },
       jumlah,
       catatan,
@@ -370,7 +370,8 @@ const deleteproduksiByIdRepo = async (id) => {
     }
 
     // Check if the status is 'batal'
-    if (existingProduksi.status !== 'batal') {
+    if (existingProduksi.status.toLowerCase() !== 'batal') {
+      // Your logic here
       return {
         success: false,
         message: 'Hanya data produksi dengan status BATAL yang dapat dihapus.',

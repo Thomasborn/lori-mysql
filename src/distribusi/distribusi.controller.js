@@ -1,4 +1,4 @@
-const express = require("express");
+rconst express = require("express");
 const router = express.Router();
 const distribusiService = require("./distribusi.service");
 
