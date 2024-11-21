@@ -21,7 +21,7 @@ router.get("/",async (req,res) => {
 router.get("/:id", async (req, res) => {
     try {
       const produkId = parseInt(req.params.id);
-      const qc_produk = await getQcProdukById(parseInt(produkId));
+      const qc_produk = await getQcProdukById((produkId));
   
       res.send(qc_produk);
     } catch (err) {

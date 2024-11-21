@@ -10,7 +10,7 @@ const findDistribusi = async (filters) => {
     if (q) {
       where.OR = [
         { produk_id: { contains: q.toString() } }, // Search by produk_id (optional)
-        { catatan: { contains: q, lte: 'insensitive' } }, // Search by catatan (case insensitive)
+        // { catatan: { contains: q, lte: 'insensitive' } }, // Search by catatan (case insensitive)
         { 
           daftarProduk: {
             model_produk: {
@@ -192,20 +192,63 @@ const findById = async (id) => {
 };
 const createDistribusi = async (data) => {
   try {
-    const { catatan, idAsalOutlet, idPenggunaPic, idTujuanOutlet, idVarian, jumlah, namaAsalOutlet, namaPenggunaPic, namaProduk, namaTujuanOutlet, tanggal, ukuranProduk } = data;
-
+    const { 
+      catatan, 
+      idAsalOutlet, 
+      idPenggunaPic, 
+      idTujuanOutlet, 
+      idVarian, 
+      jumlah, 
+      namaAsalOutlet, 
+      namaPenggunaPic, 
+      namaProduk, 
+      namaTujuanOutlet, 
+      tanggal, 
+      ukuranProduk 
+    } = data;
+    
     // Assuming tanggal is in the format "DD/MM/YYYY", parse it to DateTime
     const parsedTanggal = new Date(tanggal.split('/').reverse().join('-'));
-
+    
+    // Check if the parsed date is valid
+    if (isNaN(parsedTanggal.getTime())) {
+      throw new Error('Invalid date format. Please provide a valid date in DD/MM/YYYY format.');
+    }
+    
+    // Ensure all required fields are converted to integers
+    const parsedJumlah = parseInt(jumlah);
+    const parsedIdAsalOutlet = parseInt(idAsalOutlet);
+    const parsedIdTujuanOutlet = parseInt(idTujuanOutlet);
+    const parsedIdVarian = parseInt(idVarian);
+    const parsedIdPenggunaPic = parseInt(idPenggunaPic);
+    
+    // Check if `idVarian` or any other ID is invalid
+    if (isNaN(parsedJumlah) || isNaN(parsedIdAsalOutlet) || isNaN(parsedIdTujuanOutlet) || isNaN(parsedIdVarian) || isNaN(parsedIdPenggunaPic)) {
+      throw new Error('Invalid input data. Ensure all IDs and quantities are valid numbers.');
+    }
+    
     const createdDistribusi = await prisma.distribusi.create({
       data: {
         catatan,
-        jumlah: parseInt(jumlah), // Convert jumlah to integer
+        jumlah: parseInt(jumlah), // Ensure `jumlah` is an integer
         tanggal: parsedTanggal,
         asal_outlet_id: parseInt(idAsalOutlet),
         tujuan_outlet_id: parseInt(idTujuanOutlet),
-        produk_id: parseInt(idVarian), // Assuming idVarian represents the ID of the variant
-        idPic: parseInt(idPenggunaPic), // Assuming idPenggunaPic represents the ID of the user
+        produk_id: parseInt(idVarian), // Assuming idVarian is the variant ID
+        idPic: parseInt(idPenggunaPic), // Assuming idPenggunaPic is the user's ID
+    
+        // Connect or create a 'Pic' user
+        Pic: {
+          connectOrCreate: {
+            where: {
+              id: parsedIdPenggunaPic, // Assuming the 'Pic' user has a unique ID
+            },
+            create: {
+              id: parsedIdPenggunaPic, // Use the same ID to create the user if it doesn't exist
+              // Add any additional fields needed for creating the Pic
+            },
+          },
+        },
       },
       include: {
         Pic: true,
@@ -214,6 +257,8 @@ const createDistribusi = async (data) => {
         tujuanOutlet: true,
       },
     });
+    
+    
 
     // Reshape the response to match the expected format
     const reshapedResponse = {

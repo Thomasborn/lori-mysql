@@ -1,65 +1,81 @@
 
 const prisma = require("../db");
-const findQcProduk = async (query) => {
+const findQcProduk = async (queryParams) => {
   const {
-    q,
     bulanTemuan,
     tahunTemuan,
     bulanSelesai,
     tahunSelesai,
     status,
-    itemsPerPage,
-    page,
-  } = query;
+    itemsPerPage = 10,
+    page = 1,
+  } = queryParams;
 
-  const take = parseInt(itemsPerPage) || 10;
-  const skip = ((parseInt(page) || 1) - 1) * take;
+  const skip = (page - 1) * itemsPerPage;
+  const take = parseInt(itemsPerPage);
 
-  const where = {
-    AND: [
-      bulanTemuan && tahunTemuan
-        ? { tanggal_temuan: { gte: new Date(tahunTemuan, bulanTemuan - 1, 1) } }
-        : {},
-      bulanSelesai && tahunSelesai
-        ? { tanggal_selesai: { lte: new Date(tahunSelesai, bulanSelesai, 0) } }
-        : {},
-      status ? { status: status } : {},
-      q ? { user: { karyawan: { nama: { contains: q, lte: 'insensitive' } } } } : {},
-    ],
-  };
+  // Constructing the filters
+  const filters = {};
+  if (status) {
+    filters.status = status;
+  }
+  if (bulanTemuan && tahunTemuan) {
+    const startTemuanDate = new Date(`${tahunTemuan}-${bulanTemuan}-01`);
+    const endTemuanDate = new Date(startTemuanDate);
+    endTemuanDate.setMonth(startTemuanDate.getMonth() + 1);
 
-  const qc_produk = await prisma.qc_produk.findMany({
-    where,
-    include: {
-      produk: {  // Include the entire produk object
-        include: {
-          detail_model_produk: {
-            include: {
-              model_produk: true, // Include the entire model_produk object
+    filters.created_at = {
+      gte: startTemuanDate,
+      lt: endTemuanDate,
+    };
+  }
+  if (bulanSelesai && tahunSelesai) {
+    const startSelesaiDate = new Date(`${tahunSelesai}-${bulanSelesai}-01`);
+    const endSelesaiDate = new Date(startSelesaiDate);
+    endSelesaiDate.setMonth(startSelesaiDate.getMonth() + 1);
+
+    filters.updated_at = {
+      gte: startSelesaiDate,
+      lt: endSelesaiDate,
+    };
+  }
+
+  // Querying QC Produk
+  const [qc_produk, totalData] = await Promise.all([
+    prisma.qc_produk.findMany({
+      skip,
+      take,
+      where: filters,
+      include: {
+        produk: {
+          include: {
+            detail_model_produk: {
+              include: {
+                model_produk: true, // Include the entire model_produk object
+              },
             },
           },
         },
-      },
-      user: {
-        include: {
-          karyawan: true, // Include the entire karyawan object
+        user: {
+          include: {
+            karyawan: true, // Include the entire karyawan object
+          },
         },
       },
-    },
-    take,
-    skip,
-  });
-  
-  const totalData = await prisma.qc_produk.count({ where });
-  
+    }),
+    prisma.qc_produk.count({ where: filters }), // Total data count
+  ]);
+
+  const totalPages = Math.ceil(totalData / take);
+
+  // Reshaping data
   const reshapedData = qc_produk.map((qc) => ({
     id: qc.id,
     tanggalTemuan: qc.tanggal_temuan ? qc.tanggal_temuan.toLocaleDateString() : null,
     tanggalSelesai: qc.tanggal_selesai ? qc.tanggal_selesai.toLocaleDateString() : null,
     idProduk: qc.produk?.id, // Use optional chaining to avoid errors
-    kodeProduk: qc.produk?.detail_model_produk.model_produk.kode,
-    namaProduk: qc.produk?.detail_model_produk.model_produk.nama,
-    // kategoriProduk: qc.produk?.detail_model_produk.model_produk.kategori,
+    kodeProduk: qc.produk?.detail_model_produk?.model_produk?.kode,
+    namaProduk: qc.produk?.detail_model_produk?.model_produk?.nama,
     ukuranProduk: qc.produk?.ukuran,
     jumlah: qc.jumlah,
     tindakan: qc.tindakan,
@@ -72,62 +88,89 @@ const findQcProduk = async (query) => {
   return {
     success: true,
     message: "Data QC produk berhasil diperoleh",
-    dataTitle: "QC Bahan",
+    dataTitle: "QC Produk",
     itemsPerPage: take,
-    totalPages: Math.ceil(totalData / take),
+    totalPages,
     totalData,
     page: page || "1",
     data: reshapedData,
   };
 };
+
 const findQcProdukById = async (id) => {
-  const qc_produk = await prisma.qc_produk.findUnique({
-    where: { id },
-    include: {
-      produk: true,
-      user: {
-        include: {
-          karyawan: true,
+  try {
+    const qc_produk = await prisma.qc_produk.findUnique({
+      where: {
+        id,
+      },
+      include: {
+        produk: {
+          include: {
+            detail_model_produk: {
+              include: {
+                model_produk: {
+                  include: {
+                    kategori: true, // Assuming you want to include 'kategori' from 'model_produk'
+                  },
+                },
+              },
+            },
+          },
+        },
+        user: {
+          include: {
+            karyawan: true,
+          },
         },
       },
-    },
-  });
+    });
 
-  if (!qc_produk) {
+
+    if (!qc_produk) {
+      return {
+        success: false,
+        message: `Data QC produk dengan ID ${id} tidak ditemukan`,
+        data: null,
+      };
+    }
+
+    const reshapedData = {
+      id: qc_produk.id,
+      tanggalTemuan: qc_produk.tanggal_temuan ? qc_produk.tanggal_temuan.toLocaleDateString() : null,
+      tanggalSelesai: qc_produk.tanggal_selesai ? qc_produk.tanggal_selesai.toLocaleDateString() : null,
+      idOutlet: qc_produk.produk.id, // Assuming 'produk' has 'id' as outlet ID
+      namaOutlet: qc_produk.produk.nama, // Assuming 'produk' has 'nama' as outlet name
+      idVarian: qc_produk.produk.id, // Assuming 'produk' has 'id' as variant ID
+      kodeProduk: qc_produk.produk.detail_model_produk.model_produk.kode,
+      namaProduk: qc_produk.produk.detail_model_produk.model_produk.nama,
+      kategoriProduk: qc_produk.produk.detail_model_produk.model_produk.kategori.nama,
+      ukuranProduk: qc_produk.produk.ukuran,
+      jumlah: qc_produk.jumlah,
+      tindakan: qc_produk.tindakan,
+      status: qc_produk.status,
+      catatan: qc_produk.catatan,
+      idPenggunaQc: qc_produk.user.id,
+      namaPenggunaQc: qc_produk.user.karyawan ? qc_produk.user.karyawan.nama : null,
+      rolePenggunaQc: qc_produk.user.karyawan ? qc_produk.user.karyawan.role : null,
+      kontakPenggunaQc: qc_produk.user.karyawan ? qc_produk.user.karyawan.kontak : null,
+    };
+
+    return {
+      success: true,
+      message: `Data QC produk dengan ID ${id} berhasil diperoleh`,
+      data: reshapedData,
+    };
+  } catch (error) {
+    console.error(error); // Log the error for debugging
+
     return {
       success: false,
-      message: `Data QC produk dengan ID ${id} tidak ditemukan`,
+      message: `Terjadi kesalahan saat mengambil data QC produk: ${error.message}`,
       data: null,
     };
   }
-
-  const reshapedData = {
-    id: qc_produk.id,
-    tanggalTemuan: qc_produk.tanggal_temuan ? qc_produk.tanggal_temuan.toLocaleDateString() : null,
-    tanggalSelesai: qc_produk.tanggal_selesai ? qc_produk.tanggal_selesai.toLocaleDateString() : null,
-    idOutlet: qc_produk.produk_outlet.id, // Assuming 'produk_outlet' has 'id' as outlet ID
-    namaOutlet: qc_produk.produk_outlet.nama, // Assuming 'produk_outlet' has 'nama' as outlet name
-    idVarian: qc_produk.produk_outlet.id, // Assuming 'produk_outlet' has 'id' as variant ID
-    kodeProduk: qc_produk.produk_outlet.kode,
-    namaProduk: qc_produk.produk_outlet.nama,
-    kategoriProduk: qc_produk.produk_outlet.kategori,
-    ukuranProduk: qc_produk.produk_outlet.ukuran,
-    jumlah: qc_produk.jumlah,
-    tindakan: qc_produk.tindakan,
-    status: qc_produk.status,
-    catatan: qc_produk.catatan,
-    idPenggunaQc: qc_produk.user.id,
-    namaPenggunaQc: qc_produk.user.karyawan ? qc_produk.user.karyawan.nama : null,
-    rolePenggunaQc: qc_produk.user.karyawan ? qc_produk.user.karyawan.role : null,
-    kontakPenggunaQc: qc_produk.user.karyawan ? qc_produk.user.karyawan.kontak : null,
-  };
-
-  return {
-    success: true,
-    message: `Data QC produk dengan ID ${id} berhasil diperoleh`,
-    data: reshapedData,
-  };
-};const insertQcProdukRepo = async (newprodukData) => {
+};
+const insertQcProdukRepo = async (newprodukData) => {
   try {
     // Parse the date in DD/MM/YYYY format
     const parsedTanggalTemuan = new Date(
