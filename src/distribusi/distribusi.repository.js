@@ -245,19 +245,9 @@ const createDistribusi = async (data) => {
         tujuan_outlet_id: parsedIdTujuanOutlet,
         produk_id: parsedIdVarian,
         idPic: parsedIdPenggunaPic,
-        Pic: {
-          connectOrCreate: {
-            where: { id: parsedIdPenggunaPic },
-            create: { id: parsedIdPenggunaPic }
-          },
-        },
+     
       },
-      include: {
-        Pic: true,
-        daftarProduk: true,
-        asalOutlet: true,
-        tujuanOutlet: true,
-      },
+     
     });
 
     // Reshape and return response
