@@ -238,7 +238,7 @@ const createDistribusi = async (data) => {
     // Create or connect the distribusi record
     const createdDistribusi = await prisma.distribusi.create({
       data: {
-        catatan,
+        catatan:catatan??"pindah",
         jumlah: parsedJumlah,
         tanggal: parsedTanggal,
         asal_outlet_id: parsedIdAsalOutlet,
