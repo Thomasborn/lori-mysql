@@ -137,7 +137,7 @@ const findRestokBahanById = async (id) => {
       status: restok_bahan.status,
       catatan: restok_bahan.catatan,
       namaPengguna: restok_bahan.user.karyawan.nama,
-      rolePengguna: restok_bahan.user.role.nama,
+      rolePengguna: restok_bahan.user.role.name,
       kontakPengguna: restok_bahan.user.karyawan.kontak,
     }
   };

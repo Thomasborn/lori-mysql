@@ -46,7 +46,11 @@ const findQcBahan = async (queryParams) => {
       where: filters,
       include: {
         daftar_bahan: true,
-        user: true,
+        user: {
+          include: {
+          karyawan: true
+        },
+      }
       },
     }),
     prisma.qc_bahan.count({ where: filters }),
@@ -68,7 +72,7 @@ const findQcBahan = async (queryParams) => {
     status: item.status,
     catatan: item.catatan,
     idPenggunaQc: item.user.id,
-    namaPenggunaQc: item.user.nama,
+    namaPenggunaQc: item.user.karyawan.nama,
   }));
 
   const response = {
