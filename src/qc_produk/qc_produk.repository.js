@@ -192,18 +192,35 @@ const insertQcProdukRepo = async (newprodukData) => {
     }
     
 
-    const newQcProduk = await prisma.qc_produk.create({
-      data: {
-        tanggal_temuan: parsedTanggalTemuan,
-        tindakan: newprodukData.tindakan,
-        jumlah: parseInt(newprodukData.jumlah),
-        catatan: newprodukData.catatan || '', // Optional field, provide a default if not present
-        status: newprodukData.status,
-        produk_id: newprodukData.id, // Assuming idVarian corresponds to produk_id
-        user_id: newprodukData.idPenggunaQc,
-      },
-    });
+    // Start a transaction to ensure atomicity
+    const result = await prisma.$transaction(async (prisma) => {
+      // Create a new QC Produk entry
+      const newQcProduk = await prisma.qc_produk.create({
+        data: {
+          tanggal_temuan: parsedTanggalTemuan,
+          tindakan: newprodukData.tindakan,
+          jumlah: parseInt(newprodukData.jumlah),
+          catatan: newprodukData.catatan || '', // Optional field, provide a default if not present
+          status: newprodukData.status,
+          produk_id: newprodukData.id, // Assuming id corresponds to produk_id
+          user_id: newprodukData.idPenggunaQc,
+        },
+      });
 
+      // Decrement the stok in produk_outlet
+      await prisma.produk_outlet.update({
+        where: {
+          id: newprodukData.id,
+        },
+        data: {
+          stok: {
+            decrement: parseInt(newprodukData.jumlah), // Ensure it's an integer
+          },
+        },
+      });
+
+      return newQcProduk;
+    });
     const response = {
       success: true,
       message: `Data QC produk berhasil ditambahkan dengan ID ${newQcProduk.id}`,
@@ -240,30 +257,79 @@ const insertQcProdukRepo = async (newprodukData) => {
 
 
 
-const updateQcProdukRepo = async (id,updatedProdukData) => {
-        const existingProduk = await prisma.qc_produk.findUnique({
-          where: { id: parseInt(id) },
-        });
-        
-        if (!existingProduk) {
-            return res.status(404).json({ error: "qc_produk not found" });
-      }
+const updateQcProdukRepo = async (id, updatedProdukData) => {
+  try {
+    const existingProduk = await prisma.qc_produk.findUnique({
+      where: { id: parseInt(id) },
+      include: {
+        produk: true,
+        user: {
+          include: {
+            role: true,
+            karyawan: true,
+          },
+        },
+      },
+    });
 
-      // Validate and update the qc_produk data
-      const updatedProduk = await prisma.qc_produk.update({
+    if (!existingProduk) {
+      throw new Error('Data QC produk tidak ditemukan');
+    }
+
+    // Convert status to lowercase for comparison
+    const currentStatus = existingProduk.status.toLowerCase();
+
+    if (currentStatus === 'pulih') {
+      throw new Error('Data QC produk dengan status "Pulih" tidak dapat diperbarui.');
+    }
+
+    // Update only status and catatan
+    const updatedStatus = updatedProdukData.status ? updatedProdukData.status.toLowerCase() : existingProduk.status.toLowerCase();
+    const updatedProduk = await prisma.qc_produk.update({
       where: { id: parseInt(id) },
       data: {
-          // Add validation and update fields as needed
-          kode_produk: updatedProdukData.kode_produk || existingProduk.kode_produk,
-          sku: updatedProdukData.sku || existingProduk.sku,
-          nama_produk: updatedProdukData.nama_produk || existingProduk.nama_produk,
-          stok: parseInt(updatedProdukData.stok) || existingProduk.stok,
-      harga_jual: parseFloat(updatedProdukData.harga_jual) || existingProduk.harga_jual,
-
+        status: updatedProdukData.status || existingProduk.status,
+        catatan: updatedProdukData.catatan || existingProduk.catatan,
       },
+      include: {
+        produk: true,
+        user: {
+          include: {
+            role: true,
+            karyawan: true,
+          },
+        },
+      },
+    });
+
+    // Handle stock increment when status is changed to "batal" or "pulih"
+    if (updatedStatus === 'batal' || updatedStatus === 'pulih') {
+      await prisma.produk_outlet.update({
+        where: {
+          id: existingProduk.produk_outlet.id,
+        },
+        data: {
+          stok: {
+            increment: existingProduk.jumlah,
+          },
+        },
       });
-      return updatedProduk
-}
+    }
+
+    return {
+      success: true,
+      message: 'Data QC produk berhasil diperbarui',
+      data: updatedProduk,
+    };
+  } catch (error) {
+    console.error('Error updating QC Produk:', error);
+    return {
+      success: false,
+      message: 'Terjadi kesalahan saat memperbarui data QC produk',
+      error: error.message,
+    };
+  }
+};
 const deleteQcProdukByIdRepo = async(id)=>{
   await prisma.qc_produk.delete({
     where: { id: id },

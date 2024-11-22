@@ -258,11 +258,15 @@ const insertQcBahanRepo = async (newprodukData) => {
       throw new Error('Data QC bahan tidak ditemukan');
     }
 
-    if (existingProduk.status === 'Pulih') {
-      throw new Error('Data QC bahan dengan status PULIH tidak dapat diperbarui.');
+    // Convert status to lowercase for comparison
+    const currentStatus = existingProduk.status.toLowerCase();
+
+    if (currentStatus === 'pulih') {
+      throw new Error('Data QC bahan dengan status "Pulih" tidak dapat diperbarui.');
     }
 
     // Update only status and catatan
+    const updatedStatus = updatedProdukData.status ? updatedProdukData.status.toLowerCase() : existingProduk.status.toLowerCase();
     const updatedProduk = await prisma.qc_bahan.update({
       where: { id: parseInt(id) },
       data: {
@@ -280,8 +284,8 @@ const insertQcBahanRepo = async (newprodukData) => {
       },
     });
 
-    // Check if status changed to "Batal" and increment stok daftar_bahan
-    if (updatedProduk.status === 'Batal') {
+    // Handle stock increment when status is changed to "batal" or "pulih"
+    if (updatedStatus === 'batal' || updatedStatus === 'pulih') {
       await prisma.daftar_bahan.update({
         where: {
           id: existingProduk.daftar_bahan.id,
@@ -293,6 +297,7 @@ const insertQcBahanRepo = async (newprodukData) => {
         },
       });
     }
+
 
     return {
       success: true,
