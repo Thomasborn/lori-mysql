@@ -183,13 +183,14 @@ const insertQcProdukRepo = async (newprodukData) => {
         id: newprodukData.id,
       },
     });
-
+    
     if (!produkExists) {
       return {
         success: false,
-        message: 'Produk ID tidak ditemukan',
+        message: `Produk ID ${newprodukData.id} tidak ditemukan`, // Use template literals for dynamic value
       };
     }
+    
 
     const newQcProduk = await prisma.qc_produk.create({
       data: {
