@@ -77,7 +77,7 @@ const findQcProduk = async (queryParams) => {
     idProduk: qc.produk?.id, // Use optional chaining to avoid errors
     kodeProduk: qc.produk?.detail_model_produk?.model_produk?.kode,
     namaProduk: qc.produk?.detail_model_produk?.model_produk?.nama,
-    ukuranProduk: qc.produk?.detail_model_produk?.model_produk?.ukuran,
+    ukuranProduk: qc.produk?.detail_model_produk?.ukuran,
     namaOutlet: qc.produk?.outlet.nama,
     jumlah: qc.jumlah,
     tindakan: qc.tindakan,
@@ -155,7 +155,7 @@ const findQcProdukById = async (id) => {
       catatan: qc_produk.catatan,
       idPenggunaQc: qc_produk.user.id,
       namaPenggunaQc: qc_produk.user.karyawan ? qc_produk.user.karyawan.nama : null,
-      rolePenggunaQc: qc_produk.user? qc_produk.user.role.nama : null,
+      rolePenggunaQc: qc_produk.user? qc_produk.user.role.name : null,
       kontakPenggunaQc: qc_produk.user.karyawan ? qc_produk.user.karyawan.kontak : null,
     };
 
