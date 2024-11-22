@@ -49,6 +49,7 @@ const findQcProduk = async (queryParams) => {
       include: {
         produk: {
           include: {
+            outlet:true,
             detail_model_produk: {
               include: {
                 model_produk: true, // Include the entire model_produk object
@@ -76,7 +77,8 @@ const findQcProduk = async (queryParams) => {
     idProduk: qc.produk?.id, // Use optional chaining to avoid errors
     kodeProduk: qc.produk?.detail_model_produk?.model_produk?.kode,
     namaProduk: qc.produk?.detail_model_produk?.model_produk?.nama,
-    ukuranProduk: qc.produk?.ukuran,
+    ukuranProduk: qc.produk?.detail_model_produk?.model_produk?.ukuran,
+    namaOutlet: qc.produk?.outlet.nama,
     jumlah: qc.jumlah,
     tindakan: qc.tindakan,
     status: qc.status,
@@ -106,6 +108,7 @@ const findQcProdukById = async (id) => {
       include: {
         produk: {
           include: {
+            outlet:true,
             detail_model_produk: {
               include: {
                 model_produk: {
@@ -119,7 +122,8 @@ const findQcProdukById = async (id) => {
         },
         user: {
           include: {
-            karyawan: true,
+            role:true,
+            karyawan: true
           },
         },
       },
@@ -139,7 +143,7 @@ const findQcProdukById = async (id) => {
       tanggalTemuan: qc_produk.tanggal_temuan ? qc_produk.tanggal_temuan.toLocaleDateString() : null,
       tanggalSelesai: qc_produk.tanggal_selesai ? qc_produk.tanggal_selesai.toLocaleDateString() : null,
       idOutlet: qc_produk.produk.id, // Assuming 'produk' has 'id' as outlet ID
-      namaOutlet: qc_produk.produk.nama, // Assuming 'produk' has 'nama' as outlet name
+      namaOutlet: qc_produk.produk.outlet.nama, // Assuming 'produk' has 'nama' as outlet name
       idVarian: qc_produk.produk.id, // Assuming 'produk' has 'id' as variant ID
       kodeProduk: qc_produk.produk.detail_model_produk.model_produk.kode,
       namaProduk: qc_produk.produk.detail_model_produk.model_produk.nama,
@@ -151,7 +155,7 @@ const findQcProdukById = async (id) => {
       catatan: qc_produk.catatan,
       idPenggunaQc: qc_produk.user.id,
       namaPenggunaQc: qc_produk.user.karyawan ? qc_produk.user.karyawan.nama : null,
-      rolePenggunaQc: qc_produk.user.karyawan ? qc_produk.user.karyawan.role : null,
+      rolePenggunaQc: qc_produk.user? qc_produk.user.role.nama : null,
       kontakPenggunaQc: qc_produk.user.karyawan ? qc_produk.user.karyawan.kontak : null,
     };
 
