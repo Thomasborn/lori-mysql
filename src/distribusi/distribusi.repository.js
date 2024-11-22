@@ -120,15 +120,19 @@ const findById = async (id) => {
       include: {
         Pic: {
           select: {
+            id:true,
             karyawan: true,
             role: true,
           },
         },
         daftarProduk: {
           select: {
+            ukuran:true,
       
             model_produk: {
               select: {
+                nama:true,
+                kode:true,
                 kategori: {
                   select: {
                     nama: true,
@@ -167,7 +171,7 @@ const findById = async (id) => {
       data: {
         id: distribusi.id,
         tanggal: distribusi.tanggal.toLocaleDateString('en-GB'), // Assuming tanggal is a Date object
-        namaProduk: distribusi.daftarProduk.model_produk.nma,
+        namaProduk: distribusi.daftarProduk.model_produk.nama,
         idVarian: distribusi.idVarian, // Assuming idVarian is a property of distribusi
         ukuranProduk: distribusi.daftarProduk.ukuran, // Assuming ukuranProduk is a property of daftarProduk
         jumlah: distribusi.jumlah,
@@ -178,7 +182,7 @@ const findById = async (id) => {
         catatan: distribusi.catatan,
         idPenggunaPic: distribusi.Pic.id,
         namaPenggunaPic: distribusi.Pic.karyawan.nama,
-        rolePenggunaPic: distribusi.Pic.role.nama,
+        rolePenggunaPic: distribusi.Pic.role.name,
         kontakPenggunaPic: distribusi.Pic.karyawan.kontak,
         kategoriProduk: distribusi.daftarProduk.model_produk.kategori.nama,
         kodeProduk: distribusi.daftarProduk.model_produk.kode,
