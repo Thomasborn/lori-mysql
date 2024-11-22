@@ -180,7 +180,7 @@ const insertQcProdukRepo = async (newprodukData) => {
     // Check if the produk_id exists in the produk_outlet table
     const produkExists = await prisma.produk_outlet.findUnique({
       where: {
-        id: newprodukData.idVarian,
+        id: newprodukData.id,
       },
     });
 
@@ -198,7 +198,7 @@ const insertQcProdukRepo = async (newprodukData) => {
         jumlah: parseInt(newprodukData.jumlah),
         catatan: newprodukData.catatan || '', // Optional field, provide a default if not present
         status: newprodukData.status,
-        produk_id: newprodukData.idVarian, // Assuming idVarian corresponds to produk_id
+        produk_id: newprodukData.id, // Assuming idVarian corresponds to produk_id
         user_id: newprodukData.idPenggunaQc,
       },
     });
