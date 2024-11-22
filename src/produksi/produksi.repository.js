@@ -104,11 +104,22 @@ const findProduksiById = async (id) => {
     include: {
       detail_model_produk: {
         include: {
-          model_produk: true,
+          model_produk: {
+            include: {
+              kategori:true,
+            },
+          },
+        },
+      },
+      reviewer:{
+        include: {
+          role:true,
+          karyawan: true,
         },
       },
       user: {
         include: {
+          role:true,
           karyawan: true,
         },
       },
@@ -139,11 +150,14 @@ const findProduksiById = async (id) => {
     catatan: produksi.catatan || null,
     idPenggunaPenjahit: produksi.user.id,
     idPenggunaReviewer: produksi.id_reviewer || null,
+    rolePenggunaReviewer: produksi.reviewer.role.name || null,
+    kontakPenggunaReviewer: produksi.id_reviewer || null,
+    namaPenggunaReviewer: produksi.id_reviewer || null,
     produk: produksi.detail_model_produk.model_produk.nama || 'Unknown',
-    namaPenggunaPenjahit: produksi.user.karyawan.nama,
+    namaPenggunaPenjahit: produksi.reviewer.karyawan.nama,
     kodeProduk: produksi.detail_model_produk.model_produk.kode,
     namaProduk: produksi.detail_model_produk.model_produk.nama || 'Unknown',
-    kategoriProduk: produksi.detail_model_produk.model_produk.kategori || 'Unknown',
+    kategoriProduk: produksi.detail_model_produk.model_produk.kategori.nama || 'Unknown',
     bahan: bahanProduk.map((bahan) => ({
       id: bahan.id,
       jumlahPakai: bahan.jumlah,
@@ -152,8 +166,8 @@ const findProduksiById = async (id) => {
       kategori: bahan.daftar_bahan.kategori,
       satuan: bahan.daftar_bahan.satuan,
     })),
-    biayaJahit: produksi.biaya_jahit || 0,
-    rolePenggunaPenjahit: produksi.user.karyawan.role || 'Unknown',
+    biayaJahit: produksi.detail_model_produk.biaya_jahit || 0,
+    rolePenggunaPenjahit: produksi.user.role.name || 'Unknown',
     kontakPenggunaPenjahit: produksi.user.karyawan.kontak || 'Unknown',
   };
 

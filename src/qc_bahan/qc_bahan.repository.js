@@ -123,9 +123,9 @@ const findQcBahan = async (queryParams) => {
     tindakan: qc_bahan.tindakan,
     status: qc_bahan.status,
     catatan: qc_bahan.catatan,
-    idPenggunaQcQc: qc_bahan.user.id,
-    namaPenggunaQc: qc_bahan.user.nama,
-    rolePenggunaQc: qc_bahan.user.role.nama,
+    idPenggunaQc: qc_bahan.user.id,
+    namaPenggunaQc: qc_bahan.user.karyawan.nama,
+    rolePenggunaQc: qc_bahan.user.role.name,
     kontakPenggunaQc: qc_bahan.user.karyawan.kontak,
   };
 

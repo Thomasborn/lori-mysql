@@ -148,7 +148,7 @@ const findQcProdukById = async (id) => {
       kodeProduk: qc_produk.produk.detail_model_produk.model_produk.kode,
       namaProduk: qc_produk.produk.detail_model_produk.model_produk.nama,
       kategoriProduk: qc_produk.produk.detail_model_produk.model_produk.kategori.nama,
-      ukuranProduk: qc_produk.produk.ukuran,
+      ukuranProduk: qc_produk.produk.detail_model_produk.ukuran,
       jumlah: qc_produk.jumlah,
       tindakan: qc_produk.tindakan,
       status: qc_produk.status,
