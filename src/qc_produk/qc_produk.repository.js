@@ -183,26 +183,25 @@ const insertQcProdukRepo = async (newprodukData) => {
         id: newprodukData.id,
       },
     });
-    
+
     if (!produkExists) {
       return {
         success: false,
-        message: `Produk ID ${newprodukData.id} tidak ditemukan`, // Use template literals for dynamic value
+        message: `Produk ID ${newprodukData.id} tidak ditemukan`,
       };
     }
-    
 
     // Start a transaction to ensure atomicity
-    const result = await prisma.$transaction(async (prisma) => {
+    const newQcProduk = await prisma.$transaction(async (prisma) => {
       // Create a new QC Produk entry
-      const newQcProduk = await prisma.qc_produk.create({
+      const createdQcProduk = await prisma.qc_produk.create({
         data: {
           tanggal_temuan: parsedTanggalTemuan,
           tindakan: newprodukData.tindakan,
           jumlah: parseInt(newprodukData.jumlah),
-          catatan: newprodukData.catatan || '', // Optional field, provide a default if not present
+          catatan: newprodukData.catatan || '', // Optional field
           status: newprodukData.status,
-          produk_id: newprodukData.id, // Assuming id corresponds to produk_id
+          produk_id: newprodukData.id,
           user_id: newprodukData.idPenggunaQc,
         },
       });
@@ -213,19 +212,22 @@ const insertQcProdukRepo = async (newprodukData) => {
           id: newprodukData.id,
         },
         data: {
-          jumlah: {
+          stok: {
             decrement: parseInt(newprodukData.jumlah), // Ensure it's an integer
           },
         },
       });
 
+      return createdQcProduk;
     });
+
+    // Prepare the response data
     const response = {
       success: true,
       message: `Data QC produk berhasil ditambahkan dengan ID ${newQcProduk.id}`,
       data: {
         id: newQcProduk.id,
-        tanggalSelesai: newQcProduk.tanggal_selesai,
+        tanggalSelesai: newQcProduk.tanggal_selesai || null, // Optional field
         tanggalTemuan: newprodukData.tanggalTemuan,
         idVarian: newprodukData.idVarian,
         kodeProduk: newprodukData.kodeProduk,
@@ -244,7 +246,7 @@ const insertQcProdukRepo = async (newprodukData) => {
 
     return response;
   } catch (error) {
-    console.error(error);
+    console.error('Error inserting QC produk:', error);
     return {
       success: false,
       message: 'Terjadi kesalahan saat menambahkan data QC produk',
@@ -252,6 +254,7 @@ const insertQcProdukRepo = async (newprodukData) => {
     };
   }
 };
+
 
 
 
