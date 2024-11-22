@@ -29,7 +29,8 @@ const corsOptions = {
     'http://localhost:5173',
     'http://localhost:3000',
     'http://localhost.devl:5173',
-    'https://omahit.online/',
+    'https://omahit.online',
+    'http://localhost:4173',
   ], // Replace with your frontend URLs
   methods: ['GET', 'POST', 'PUT','PATCH', 'DELETE'], // Allow specific HTTP methods
   allowedHeaders: [
