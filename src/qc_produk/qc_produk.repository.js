@@ -307,7 +307,7 @@ const updateQcProdukRepo = async (id, updatedProdukData) => {
           id: existingProduk.produk.id,
         },
         data: {
-          stok: {
+          jumlah: {
             increment: existingProduk.jumlah,
           },
         },
@@ -320,11 +320,56 @@ const updateQcProdukRepo = async (id, updatedProdukData) => {
       data: updatedProduk,
     };
 };
-const deleteQcProdukByIdRepo = async(id)=>{
-  await prisma.qc_produk.delete({
-    where: { id: id },
-  });
-}
+const deleteQcProdukByIdRepo = async (id) => {
+  try {
+    const qcProduk = await prisma.qc_produk.findUnique({
+      where: { id: parseInt(id) },
+      include: {
+        produk: true,
+        user: true,
+      },
+    });
+
+    if (!qcProduk) {
+      throw new Error('Data QC produk tidak ditemukan');
+    }
+
+    // Convert status to lowercase for comparison
+    const currentStatus = qcProduk.status.toLowerCase();
+
+    if (currentStatus === 'pulih') {
+      throw new Error('Data QC produk dengan status "Pulih" tidak dapat dihapus');
+    }
+
+    await prisma.qc_produk.delete({
+      where: { id: parseInt(id) },
+    });
+
+    // If status is "batal", return stok produk_outlet
+    if (currentStatus === 'batal') {
+      await prisma.produk_outlet.update({
+        where: { id: qcProduk.produk.id },
+        data: {
+          jumlah: {
+            increment: qcProduk.jumlah,
+          },
+        },
+      });
+    }
+
+    return {
+      success: true,
+      message: `Data QC produk dengan ID ${id} berhasil dihapus`,
+    };
+  } catch (error) {
+    console.error('Error deleting QC produk:', error);
+    return {
+      success: false,
+      message: error.message || 'Gagal menghapus data QC produk',
+    };
+  }
+};
+
 module.exports={
   findQcProduk,
   findQcProdukById,

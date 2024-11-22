@@ -245,10 +245,53 @@ const createDistribusi = async (data) => {
         tujuan_outlet_id: parsedIdTujuanOutlet,
         produk_id: parsedIdVarian,
         idPic: parsedIdPenggunaPic,
-     
       },
-     
     });
+
+    // Update stock in produk_outlet where asal_outlet_id matches
+    await prisma.produk_outlet.updateMany({
+      where: {
+        produk_id: parsedIdVarian,
+        outlet_id: parsedIdAsalOutlet,
+      },
+      data: {
+        jumlah: {
+          decrement: parsedJumlah,
+        },
+      },
+    });
+
+    // Update or create in produk_outlet where tujuan_outlet_id matches
+    const existingProdukOutlet = await prisma.produk_outlet.findFirst({
+      where: {
+        produk_id: parsedIdVarian,
+        outlet_id: parsedIdTujuanOutlet,
+      },
+    });
+
+    if (existingProdukOutlet) {
+      // Update if the record exists
+      await prisma.produk_outlet.update({
+        where: {
+          id: existingProdukOutlet.id,
+        },
+        data: {
+          jumlah: {
+            increment: parsedJumlah,
+          },
+        },
+      });
+    } else {
+      // Create if the record does not exist
+      await prisma.produk_outlet.create({
+        data: {
+          produk_id: parsedIdVarian,
+          outlet_id: parsedIdTujuanOutlet,
+          jumlah: parsedJumlah,
+        },
+      });
+    }
+
 
     // Reshape and return response
     const reshapedResponse = {
