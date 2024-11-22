@@ -49,7 +49,7 @@ req.session.user = {
               id: user.id,
               role_id: user.role_id,
           }, 'lori', { // Replace 'your-secret-key' with a strong secret key
-              expiresIn: '1h', // Token expires in 1 hour
+              expiresIn: '720h', // Token expires in 1 hour
             });
   
             // Store token in cookie
