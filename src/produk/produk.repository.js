@@ -468,7 +468,7 @@ const findDaftarProdukById = async (productId) => {
       });
 
       return {
-        idVarian: detail.id, // Tambahkan idVarian
+        id: detail.id, // Tambahkan idVarian
         ukuran: detail.ukuran,
         biayaJahit: detail.biaya_jahit,
         hargaJual: detail.harga_jual,
