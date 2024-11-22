@@ -213,7 +213,7 @@ const insertQcProdukRepo = async (newprodukData) => {
           id: newprodukData.id,
         },
         data: {
-          stok: {
+          jumlah: {
             decrement: parseInt(newprodukData.jumlah), // Ensure it's an integer
           },
         },
