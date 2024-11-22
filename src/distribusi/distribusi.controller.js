@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const distribusiService = require("./distribusi.service");
+const { distribusi } = require("../db");
 
 // GET all distribusi
 router.get("/", async (req, res) => {
@@ -56,8 +57,8 @@ router.put("/:id", async (req, res) => {
 router.delete("/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    await distribusiService.deleteDistribusiById(parseInt(id));
-    res.status(200).send();
+  distribusi=  await distribusiService.deleteDistribusiById(parseInt(id));
+    res.status(200).send(distribusi);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

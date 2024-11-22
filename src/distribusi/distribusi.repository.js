@@ -354,7 +354,7 @@ const deleteDistribusiById = async (id) => {
     return {
       success: true,
       message: `Data distribusi dengan ID ${id} berhasil dihapus`,
-      data: deletedDistribusi,
+      // data: deletedDistribusi,
     };
   } catch (error) {
     throw new Error(`Gagal menghapus distribusi: ${error.message}`);
