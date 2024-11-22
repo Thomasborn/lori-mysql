@@ -192,7 +192,7 @@ const findDaftarProduk = async (q, kategori, idOutlet, page = 1, itemsPerPage = 
       );
     
       acc[model_produk.id].varian.push({
-        idVarian: detail_model_produk.id, // Ensure this field exists in your data model
+        // idVarian: detail_model_produk.id, // Ensure this field exists in your data model
         ukuran: detail_model_produk.ukuran || 'Unknown',
         harga: detail_model_produk.harga_jual || 0,
         stok: produkOutlet.jumlah || 0,
