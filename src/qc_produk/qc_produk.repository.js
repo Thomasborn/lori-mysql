@@ -219,7 +219,6 @@ const insertQcProdukRepo = async (newprodukData) => {
         },
       });
 
-      return newQcProduk;
     });
     const response = {
       success: true,
@@ -305,7 +304,7 @@ const updateQcProdukRepo = async (id, updatedProdukData) => {
     if (updatedStatus === 'batal' || updatedStatus === 'pulih') {
       await prisma.produk_outlet.update({
         where: {
-          id: existingProduk.produk_outlet.id,
+          id: existingProduk.produk.id,
         },
         data: {
           stok: {
