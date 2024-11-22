@@ -258,7 +258,6 @@ const insertQcProdukRepo = async (newprodukData) => {
 
 
 const updateQcProdukRepo = async (id, updatedProdukData) => {
-  try {
     const existingProduk = await prisma.qc_produk.findUnique({
       where: { id: parseInt(id) },
       include: {
@@ -321,14 +320,6 @@ const updateQcProdukRepo = async (id, updatedProdukData) => {
       message: 'Data QC produk berhasil diperbarui',
       data: updatedProduk,
     };
-  } catch (error) {
-    console.error('Error updating QC Produk:', error);
-    return {
-      success: false,
-      message: 'Terjadi kesalahan saat memperbarui data QC produk',
-      error: error.message,
-    };
-  }
 };
 const deleteQcProdukByIdRepo = async(id)=>{
   await prisma.qc_produk.delete({

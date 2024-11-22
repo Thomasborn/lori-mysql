@@ -51,7 +51,7 @@ router.post("/", upload.none(), async (req, res) => {
           // Check if the qc_produk exists before attempting to update it
         const qc_produk = await updatedQcProduk(parseInt(id),updatedQcProdukData)
     
-    res.send({data:qc_produk, message: "qc_produk updated successfully" });
+    res.send({data:qc_produk});
 } catch (error) {
     console.error('Error updating qc_produk:', error);
     res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
