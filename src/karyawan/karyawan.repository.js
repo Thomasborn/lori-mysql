@@ -122,7 +122,7 @@ const insertKaryawanRepo = async (newkaryawanData) => {
       status,
       alamat,
       email,
-      noHp,
+      nomorHp,
       bank,
       norek,
       akunBank,
@@ -134,7 +134,7 @@ const insertKaryawanRepo = async (newkaryawanData) => {
         nama,
         nik,
         alamat,
-        kontak: noHp, // Assuming nomorHp maps to kontak
+        kontak: nomorHp, // Assuming nomorHp maps to kontak
         tanggal_lahir: new Date(), // Assuming tanggal_lahir is set to current date-time
         jenis_kelamin: gender, // Assuming gender maps to jenis_kelamin
         no_rekening: norek, // Assuming norek maps to no_rekening
